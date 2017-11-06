@@ -1,0 +1,46 @@
+Number of possibilities for traces:  2753296285162500
+Number of possibilities for traces:  389025
+Of these, polynomials with integer coefficients:  743
+[]
+Elapsed time:0.867051839828 seconds.
+Testing g=11 with limit on dilatation 1.21728120000000
+Number of possibilities for traces:  389025
+Of these, polynomials with integer coefficients:  743
+[]
+Elapsed time:0.766144037247 seconds.
+
+Testing g=5 with limit on dilatation 1.21728120000000
+Number of possibilities for traces:  9438
+Of these, polynomials with integer coefficients:  93
+[]
+Elapsed time:0.507785081863 seconds.
+
+Testing g=9 with limit on dilatation 1.21730000000000
+Number of possibilities for traces:  115601292450
+[(x^9 - 7*x^8 + 22*x^7 - 42*x^6 + 56*x^5 - 56*x^4 + 42*x^3 - 22*x^2 + 7*x - 1, 1.01189989445), (x^9 - x^5 - x^4 - 1, 1.21728118174)]
+Elapsed time:142.023039818 seconds.
+
+Testing g=11 with limit on dilatation 1.17430000000000
+Number of possibilities for traces:  673727230667700
+[(x^11 - 4*x^10 + 5*x^9 - 5*x^7 + 3*x^6 + 3*x^5 - 5*x^4 + 5*x^2 - 4*x + 1, 1.00270775094), (x^11 - x^6 - x^5 - 1, 1.17429088485)]
+Elapsed time:4546.32730794 seconds.
+
+Testing g=10 with limit on dilatation 1.22261520000000
+Number of possibilities for traces:  22732446575223
+[(x^10 - x^7 - x^6 - x^5 + x^4 + x^3 - 1, 1.20376671189), (x^10 - x^9 + x^8 - x^7 - x^5 + x^3 - x^2 + x - 1, 1.21715054972), (x^10 + x^9 - x^6 - 2*x^5 - x^4 - x - 1, 1.21728118174), (x^10 - x^9 - x^6 + x^4 - x + 1, 1.21728118174), (x^10 - x^9 + x^7 - x^6 - x^5 + x^4 - x^3 + x - 1, 1.22261519675)]
+Elapsed time:2953.95487499 seconds.
+
+Testing g=7 with limit on dilatation 1.28850000000000
+Number of possibilities for traces:  33201000
+[(x^7 - 7*x^6 + 21*x^5 - 35*x^4 + 35*x^3 - 21*x^2 + 7*x - 1, 1.01013711121), (x^7 - x^4 - x^3 - 1, 1.28845272628)]
+Elapsed time:4.81994318962 seconds.
+
+Testing g=8 with limit on dilatation 1.30740000000000
+Number of possibilities for traces:  6952689513
+[(x^8 - 6*x^7 + 14*x^6 - 14*x^5 + 14*x^3 - 14*x^2 + 6*x - 1, 1.00650255173), (x^8 - x^7 + x^6 - x^5 - x^4 + x^3 - x^2 + x - 1, 1.23742890513), (x^8 + x^7 - x^5 - 2*x^4 - x^3 - x - 1, 1.28845272628), (x^8 - x^7 - x^5 + x^3 - x + 1, 1.28845272628), (x^8 - x^6 - x^5 - x^3 + x^2 + 1, 1.28944452335), (x^8 + 2*x^7 + x^6 - x^5 - 2*x^4 - 3*x^3 - 3*x^2 - 2*x - 1, 1.28944452335), (x^8 - x^7 - x^6 + x^5 - x^3 + x^2 - x + 1, 1.30739546306), (x^8 + x^7 - x^6 - x^5 - x^3 - x^2 - x - 1, 1.30739546306)]
+Elapsed time:134.085996866 seconds.
+
+Testing g=7 with limit on dilatation 1.50000000000000
+Number of possibilities for traces:  436266600
+[(x^7 - x^4 - x^3 - 1, 1.28845272628), (x^7 + x^6 - x^4 - x^3 - 2*x^2 - x - 1, 1.28944452335), (x^7 - x^5 - x^2 - 1, 1.30739546306), (x^7 - 2*x^2 - 2*x - 1, 1.32471795724), (x^7 - 2*x^4 - 1, 1.32471795724), (x^7 - x^6 - x - 1, 1.36525470662), (x^7 - 2*x^6 + 2*x^5 - 2*x^3 - 1, 1.41603032585), (x^7 - 2*x^6 + x^5 - x^4 + x^3 + x^2 - 2*x + 1, 1.42197501431), (x^7 - x^5 - x^4 - x^3 + x^2 - 1, 1.42197501431), (x^7 - 2*x^6 + x^4 + x^3 - 2*x^2 + 2*x - 1, 1.42910831984), (x^7 + 2*x^6 - 3*x^4 - 3*x^3 - 2*x^2 - 2*x - 1, 1.42910831984), (x^7 - 2*x^5 - x^4 + x^3 + 1, 1.42910831984), (x^7 - x^4 - x^3 - 2*x^2 - 1, 1.42910831984), (x^7 - x^6 - 2*x^2 + x - 1, 1.42910831984), (x^7 + x^6 - 2*x^4 - 2*x^3 - 2*x^2 - x - 1, 1.42910831984), (x^7 - x^6 - x^4 + x^3 - x - 1, 1.43060086385), (x^7 - x^6 + x^5 - 2*x^4 - x^2 + x - 1, 1.44553811706), (x^7 - x^6 + x^5 - 2*x^3 - x^2 - x - 1, 1.45178267833), (x^7 - 2*x^6 + 2*x^3 - 1, 1.46557123188), (x^7 - 2*x^6 + 2*x^4 - 2*x^3 + 2*x^2 - 2*x + 1, 1.46557123188), (x^7 - 2*x^5 - 1, 1.46557123188), (x^7 - 2*x^6 + 2*x^5 - 2*x^4 + 2*x^3 - 2*x^2 - 1, 1.46557123188), (x^7 - 2*x^4 - 2*x^2 - 1, 1.46557123188), (x^7 - 2*x^5 - 2*x^4 + 2*x^2 + 2*x + 1, 1.46557123188), (x^7 - x^5 - 2*x^4 + x^2 - 1, 1.47820277867), (x^7 - 2*x^6 + x^5 + x^4 - x^3 - x^2 - 1, 1.47989290901), (x^7 - 2*x^6 + 2*x^5 - x^4 - x^3 - 1, 1.49709404876), (x^7 - 3*x^6 + 3*x^5 - x^4 - x^3 + x^2 + x - 1, 1.49709404876), (x^7 - x^6 + x^5 - x^4 - x^3 - x^2 - x - 1, 1.49709404876), (x^7 - x^6 - x^5 + x^4 - x^3 - x^2 + x + 1, 1.49709404876), (x^7 - x^4 - x^3 - 2*x^2 - 2*x - 1, 1.49709404876), (x^7 + x^6 - x^5 - x^4 - x^3 - 3*x^2 - 3*x - 1, 1.49709404876), (x^7 - x^6 - x^4 + x^3 - 2*x^2 + x - 1, 1.49965117453)]
+Elapsed time:64.142829895 seconds.

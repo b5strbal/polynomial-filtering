@@ -1,0 +1,230 @@
+
+Testing g=13 with limit on dilatation 1.145507
+The first trace is assumed to be 0
+[(x^13 - x^7 - x^6 - 1, 1.14550642801)]
+Elapsed time:1453.91306114 seconds.
+
+Testing g=13 with limit on dilatation 1.145507
+The first trace is assumed to be -1
+[]
+Elapsed time:1705.03728986 seconds.
+
+Testing g=13 with limit on dilatation 1.145507
+The first trace is assumed to be 1
+[]
+Elapsed time:1562.50050092 seconds.
+
+Testing g=13 with limit on dilatation 1.145507
+The first trace is assumed to be -2
+[]
+Elapsed time:1522.78692913 seconds.
+
+Testing g=13 with limit on dilatation 1.145507
+The first trace is assumed to be 2
+[]
+Elapsed time:2247.41148782 seconds.
+
+Testing g=13 with limit on dilatation 1.145507
+The first trace is assumed to be -3
+[]
+Elapsed time:1579.75233698 seconds.
+
+Testing g=13 with limit on dilatation 1.145507
+The first trace is assumed to be 3
+[]
+Elapsed time:1773.91552091 seconds.
+
+Testing g=13 with limit on dilatation 1.145507
+The first trace is assumed to be -4
+[]
+Elapsed time:2470.11613107 seconds.
+
+Testing g=13 with limit on dilatation 1.145507
+The first trace is assumed to be 4
+[]
+Elapsed time:2338.15260792 seconds.
+
+Testing g=13 with limit on dilatation 1.145507
+The first trace is assumed to be -5
+[]
+Elapsed time:2323.13275194 seconds.
+
+Testing g=13 with limit on dilatation 1.145507
+The first trace is assumed to be 5
+[]
+Elapsed time:1781.68921113 seconds.
+
+Testing g=13 with limit on dilatation 1.145507
+The first trace is assumed to be -6
+[]
+Elapsed time:2478.51400208 seconds.
+
+Testing g=13 with limit on dilatation 1.145507
+The first trace is assumed to be 6
+[]
+Elapsed time:1351.71003413 seconds.
+
+Testing g=13 with limit on dilatation 1.145507
+The first trace is assumed to be -7
+[]
+Elapsed time:1742.31765389 seconds.
+
+Testing g=13 with limit on dilatation 1.145507
+The first trace is assumed to be 7
+[]
+Elapsed time:1353.96410489 seconds.
+
+Testing g=13 with limit on dilatation 1.145507
+The first trace is assumed to be -8
+[]
+Elapsed time:1817.62056804 seconds.
+
+Testing g=13 with limit on dilatation 1.145507
+The first trace is assumed to be 8
+[]
+Elapsed time:1506.67102695 seconds.
+
+Testing g=13 with limit on dilatation 1.145507
+The first trace is assumed to be -9
+[]
+Elapsed time:1490.72586107 seconds.
+
+Testing g=13 with limit on dilatation 1.145507
+The first trace is assumed to be 9
+[]
+Elapsed time:1378.40812087 seconds.
+
+Testing g=13 with limit on dilatation 1.145507
+The first trace is assumed to be -10
+[]
+Elapsed time:2468.88706994 seconds.
+
+Testing g=13 with limit on dilatation 1.145507
+The first trace is assumed to be 10
+[]
+Elapsed time:1711.84104204 seconds.
+
+Testing g=13 with limit on dilatation 1.145507
+The first trace is assumed to be 11
+[]
+Elapsed time:1372.99239898 seconds.
+
+Testing g=13 with limit on dilatation 1.145507
+The first trace is assumed to be 12
+[]
+Elapsed time:1078.87591791 seconds.
+
+Testing g=13 with limit on dilatation 1.145507
+The first trace is assumed to be 13
+[]
+Elapsed time:1204.37311697 seconds.
+
+Testing g=12 with limit on dilatation 1.2
+The first trace is assumed to be 0
+[(x^12 - 2*x^9 - x^6 + 2*x^3 + 1, 1.1739850107), (x^12 - x^9 - x^7 - x^5 + x^3 + 1, 1.17859641467), (x^12 - 2*x^7 - 1, 1.18225985712), (x^12 - x^10 - x^9 + x^8 + x^7 - x^6 - x^5 - x^4 + x^3 + x^2 - 1, 1.19698356073)]
+Elapsed time:4515.30832815 seconds.
+
+Testing g=12 with limit on dilatation 1.2
+The first trace is assumed to be -1
+[(x^12 + x^11 - x^7 - 2*x^6 - x^5 - x - 1, 1.17429088485), (x^12 + x^11 - x^8 - x^7 - x^5 - x^4 - x - 1, 1.17837501486), (x^12 + x^11 - 2*x^7 - 2*x^6 - x - 1, 1.1870930029), (x^12 + x^11 - x^9 - x^8 - x^4 - x^3 - x - 1, 1.18773435096), (x^12 + x^11 - x^10 - 2*x^9 - x^8 + x^6 - x^4 + x^2 + x + 1, 1.19071270708)]
+Elapsed time:5679.51797485 seconds.
+
+Testing g=12 with limit on dilatation 1.2
+The first trace is assumed to be 1
+[(x^12 - x^11 + x^10 - x^9 + x^8 - x^7 - x^6 + x^5 - x^4 + x^3 - x^2 + x - 1, 1.15435521171), (x^12 - x^11 - x^7 + x^5 - x + 1, 1.17429088485), (x^12 - x^11 - x^8 + x^7 - x^5 + x^4 - x + 1, 1.17837501486), (x^12 - x^11 - 2*x^7 + 2*x^6 - x + 1, 1.1870930029), (x^12 - x^11 - x^9 + x^8 - x^4 + x^3 - x + 1, 1.18773435096), (x^12 - x^11 - x^10 + 2*x^9 - x^8 + x^6 - 2*x^5 + x^4 - x^2 + x - 1, 1.19071270708), (x^12 - x^11 + x^10 - x^9 - x^6 + x^3 - x^2 + x - 1, 1.19908284563)]
+Elapsed time:4611.11864901 seconds.
+
+Testing g=12 with limit on dilatation 1.2
+The first trace is assumed to be -2
+[(x^12 + 2*x^11 + 2*x^10 + x^9 - x^7 - 2*x^6 - 3*x^5 - 4*x^4 - 3*x^3 - 2*x^2 - 2*x - 1, 1.17859641467)]
+Elapsed time:5050.24382496 seconds.
+
+Testing g=12 with limit on dilatation 1.2
+The first trace is assumed to be 2
+[]
+Elapsed time:3057.3612349 seconds.
+
+Testing g=12 with limit on dilatation 1.2
+The first trace is assumed to be -3
+[]
+Elapsed time:4778.75415397 seconds.
+
+Testing g=12 with limit on dilatation 1.2
+The first trace is assumed to be 3
+[]
+Elapsed time:2777.49270105 seconds.
+
+Testing g=12 with limit on dilatation 1.2
+The first trace is assumed to be -4
+[]
+Elapsed time:4099.94967413 seconds.
+
+Testing g=12 with limit on dilatation 1.2
+The first trace is assumed to be 4
+[]
+Elapsed time:2411.73937798 seconds.
+
+Testing g=12 with limit on dilatation 1.2
+The first trace is assumed to be -5
+[]
+Elapsed time:5798.67458582 seconds.
+
+Testing g=12 with limit on dilatation 1.2
+The first trace is assumed to be 5
+[]
+Elapsed time:3022.3793869 seconds.
+
+Testing g=12 with limit on dilatation 1.2
+The first trace is assumed to be -6
+[]
+Elapsed time:5231.4706111 seconds.
+
+Testing g=12 with limit on dilatation 1.2
+The first trace is assumed to be 6
+[]
+Elapsed time:2667.26937699 seconds.
+
+Testing g=12 with limit on dilatation 1.2
+The first trace is assumed to be -7
+[]
+Elapsed time:5853.5125401 seconds.
+
+Testing g=12 with limit on dilatation 1.2
+The first trace is assumed to be 7
+[]
+Elapsed time:2899.94890809 seconds.
+
+Testing g=12 with limit on dilatation 1.2
+The first trace is assumed to be -8
+[]
+Elapsed time:5118.48554897 seconds.
+
+Testing g=12 with limit on dilatation 1.2
+The first trace is assumed to be 8
+[]
+Elapsed time:2680.70139909 seconds.
+
+Testing g=12 with limit on dilatation 1.2
+The first trace is assumed to be -9
+[]
+Elapsed time:4555.40278792 seconds.
+
+Testing g=12 with limit on dilatation 1.2
+The first trace is assumed to be 9
+[]
+Elapsed time:2872.71997309 seconds.
+
+Testing g=12 with limit on dilatation 1.2
+The first trace is assumed to be 10
+[]
+Elapsed time:1980.27166891 seconds.
+
+Testing g=12 with limit on dilatation 1.2
+The first trace is assumed to be 11
+[]
+Elapsed time:2342.12438107 seconds.
+
+Testing g=12 with limit on dilatation 1.2
+The first trace is assumed to be 12
+[]
+Elapsed time:2489.14155293 seconds.
