@@ -1,6 +1,6 @@
 
 #*****************************************************************************
-#       Copyright (C) 2014 Balazs Strenner <strennerb@gmail.com>
+#       Copyright (C) 2017 Balazs Strenner <strennerb@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -12,7 +12,7 @@
 
 
 import numpy as np
-from sage import all
+from sage.all import *
 
 # Choosing too small TOLERANCE has the danger incorrectly eliminating
 # good polynomials, for instance, because their largest root, which is
@@ -26,6 +26,13 @@ TOLERANCE = 1e-3
 # largest root is found to be less than EPSILON, the polynomial is
 # eliminated. With a very small ESPILON, bad polynomials might also accepted.
 EPSILON = 1e-10
+
+
+
+cdef int cUPPER = 0
+cdef int cLOWER = 1
+UPPER = 0
+LOWER = 1
 
 
 def passes_newton_test(polynomial, largest_root_bound):
@@ -67,27 +74,22 @@ def passes_newton_test(polynomial, largest_root_bound):
     assert(False)
 
 
-def good_polys_from_coeffs(middle_coeffs, largest_root_bound, is_orientable):
-    polys = construct_polys(middle_coeffs, is_orientable)
-    good_polys = []
-    for poly in polys:
-        if not passes_newton_test(poly, largest_root_bound):
-            continue
-        pf_root = get_PF_root(poly, CDF, is_orientable)
-        if pf_root == None:
-            continue
-        if not abs(pf_root) <= largest_root_bound:
-            continue
-        if pf_root == None or pf_root < 0:
-            continue
-        good_polys.append((poly, pf_root))
-    return good_polys
-
+def is_good_poly(poly, largest_root_bound, is_orientable):
+    if not passes_newton_test(poly, largest_root_bound):
+        return False
+    pf_root = get_PF_root(poly, CDF, is_orientable)
+    if pf_root == None:
+        return False
+    if not abs(pf_root) <= largest_root_bound:
+        return False
+    if pf_root == None or pf_root < 0:
+        return False
+    return True
 
 
 def find_polynomial_candidates(degree, largest_root_bound, is_orientable):
     # The number of coefficients to store.
-    num_coeffs = degree-1 if not is_orientable else degree // 2
+    num_coeffs = degree if not is_orientable else degree // 2
 
     # For a polynomial x^d+a_{d-1}x^{d-1}+...+a_0$, this is the sequence
     # a_{d-1}, ..., a_0.
@@ -101,40 +103,55 @@ def find_polynomial_candidates(degree, largest_root_bound, is_orientable):
         for i in range(num_coeffs):
             trace_bounds[typ,i] = get_trace_bound(degree, largest_root_bound,
                                                   i+1, is_orientable, typ)
-
+    # print [trace_bounds[UPPER,i]-trace_bounds[LOWER,i]+1 for i in range(len(trace_bounds[UPPER]))]
     good_coeffs = []
-
-    find_polynomials_recursive(degree, largest_root_bound, is_orientable,
+    # count = np.zeros(1, dtype=np.int)
+    find_polynomials_recursive(len(coeffs), is_orientable,
                                coeffs, traces, trace_bounds, 0,
                                good_coeffs)
-
+    # print good_coeffs
+    # print [-1,0,1,-1,-1,1,-1,0,1] in good_coeffs
     good_polys = []
     for coeffs in good_coeffs:
-        good_polys.extend(good_polys_from_coeffs(coeffs, largest_root_bound, is_orientable))
-
+        poly = construct_poly(coeffs, is_orientable)
+        if is_good_poly(poly, largest_root_bound, is_orientable):
+            pf_root = get_PF_root(poly, CDF, is_orientable)
+            good_polys.append((poly, pf_root))
+    print len(good_polys)
     return sorted(good_polys, key = lambda x: x[1])
 
 
-def do_traces_pass_backwards(coeffs, trace_abs_bounds):
-    backward_coeffs = coeffs[::-1]
-    backward_traces = np.zeros(len(coeffs), dtype=np.int)
-    backward_traces[0] = -backward_coeffs[0]
+cdef long [:] backward_traces = np.zeros(30, dtype=np.int)
+
+
+cdef do_traces_pass_backwards(long[:] coeffs, long[:] trace_abs_bounds):
+    cdef long [:] backward_coeffs = coeffs[-2::-1]
+
+    # coeffs[-1] is the constant term of the polynomial. When it is negative,
+    # then all coefficients should be taken with a negative sign.
+    backward_traces[0] = -coeffs[-1]*backward_coeffs[0]
     if abs(backward_traces[0]) > trace_abs_bounds[0]:
         return False
-    for i in range(1, len(coeffs)):
+    cdef int i, j
+    for i in range(1, len(coeffs)-1):
         # using Newton's formula to figure out the next trace
         # E.g. p_4 = -a_1p_3 - a_2p_2 - a_3p_1 - 4a_4
-        backward_traces[i] = -(i+1) * backward_coeffs[i]
+        backward_traces[i] = -coeffs[-1] * (i+1) * backward_coeffs[i]
         for j in range(i):
-            backward_traces[i] -= backward_coeffs[j] * backward_traces[i-1-j]
+            backward_traces[i] -= coeffs[-1] * backward_coeffs[j] * backward_traces[i-1-j]
         if abs(backward_traces[i]) > trace_abs_bounds[i]:
             return False
     return True
 
 
-def find_polynomials_recursive(degree, largest_root_bound, is_orientable,
-                               coeffs, traces, trace_bounds, next_idx,
-                               good_coeffs):
+cdef find_polynomials_recursive(int num_coeffs,
+                                int is_orientable,
+                                long[:] coeffs,
+                                long[:] traces,
+                                long[:,:]trace_bounds,
+                                int next_idx,
+                                list good_coeffs):
+
     """
     INPUT:
 
@@ -148,15 +165,26 @@ def find_polynomials_recursive(degree, largest_root_bound, is_orientable,
 
     - ``is_orientable`` -- whether the surface is orientable or not
     """
-    if next_idx == len(coeffs):
-        if not do_traces_pass_backwards(coeffs, trace_bounds[UPPER]):
+    cdef int j
+    if next_idx == num_coeffs -1 and not is_orientable:
+        for j in range(-1,2,2):
+            coeffs[next_idx] = j
+            find_polynomials_recursive(num_coeffs,
+                                       is_orientable, coeffs, traces,
+                                       trace_bounds, next_idx+1,
+                                       good_coeffs)
+        return
+
+    if next_idx == num_coeffs:
+        if not is_orientable and \
+           not do_traces_pass_backwards(coeffs, trace_bounds[cUPPER]):
             return
         good_coeffs.append(list(coeffs))
         return
 
     # next_idx - The index of the coefficient to figure out.
-    trace_upper_bound = trace_bounds[UPPER, next_idx]
-    trace_lower_bound = trace_bounds[LOWER, next_idx]
+    cdef long trace_upper_bound = trace_bounds[cUPPER, next_idx]
+    cdef long trace_lower_bound = trace_bounds[cLOWER, next_idx]
 
     # Trying to determine the next coefficient from the previous coefficients
     # and traces using Newton's formula, e.g.:
@@ -164,7 +192,8 @@ def find_polynomials_recursive(degree, largest_root_bound, is_orientable,
     # Here the coefficients are the a_i and the traces of the powers are p_1,
     # p_2, etc.
     coeffs[next_idx] = 0
-    # n = len(first_coeffs)
+
+
     for j in range(next_idx):
         # The right hand side of the formula above, without p_4.
         coeffs[next_idx] -= traces[j] * coeffs[next_idx - 1 - j]
@@ -178,28 +207,25 @@ def find_polynomials_recursive(degree, largest_root_bound, is_orientable,
 
     # Completing Newton's formula above to determine the next coefficient
     coeffs[next_idx] -= traces[next_idx]
-    coeffs[next_idx] /= next_idx + 1
+    coeffs[next_idx] = coeffs[next_idx] / (next_idx + 1)
 
 
     while trace_lower_bound <= traces[next_idx] <= trace_upper_bound:
         if not is_orientable and \
-           2 * next_idx >= len(coeffs) and \
-           coeffs[next_idx] % 2 != coeffs[len(coeffs)-next_idx-1] % 2:
+           2 * next_idx >= num_coeffs-1 and \
+           coeffs[next_idx] % 2 != coeffs[num_coeffs-next_idx-2] % 2:
             # In the nonorientable case, if at least half of the coefficients
             # have been determined, then we make sure that the polynomial is
             # reciprocal mod 2.
             pass
         else:
-            find_polynomials_recursive(degree, largest_root_bound,
+            find_polynomials_recursive(num_coeffs,
                                        is_orientable, coeffs, traces,
                                        trace_bounds, next_idx+1,
                                        good_coeffs)
         # Choosing a smaller trace and updating the coefficient
         traces[next_idx] -= next_idx + 1
         coeffs[next_idx] += 1
-
-UPPER = 0
-LOWER = 1
 
 def get_trace_bound(degree, largest_root_bound, power, is_orientable,
                     upper_or_lower=UPPER):
@@ -249,28 +275,13 @@ def get_trace_bound(degree, largest_root_bound, power, is_orientable,
 
 
 
-def construct_polys(middle_coeffs, is_orientable):
+def construct_poly(middle_coeffs, is_orientable):
     R = PolynomialRing(IntegerRing(), 'x')
     if is_orientable:
-        coeffs_list = [[1] + list(middle_coeffs) + list(middle_coeffs)[-2::-1] + [1]]
+        coeffs = [1] + list(middle_coeffs) + list(middle_coeffs)[-2::-1] + [1]
     else:
-        coeffs_list = [[1] + list(middle_coeffs) + [1], [1] + list(middle_coeffs) + [-1]]
-    # coeffs_list.extend([[coeffs[k] * (-1)^k for k in
-    #                      range(len(coeffs))] for coeffs in coeffs_list
-    #                     if coeffs[1] > 0])
-    # print coeffs_list
-    return [R(coeffs[::-1]) for coeffs in coeffs_list]
-
-
-
-
-
-# def is_symmetric_mod2(polynomial):
-#     p = polynomial
-#     coeffs = p.coeffs()
-#     d = p.degree()
-#     return all((coeffs[i] - coeffs[d-i]) % 2 == 0
-#                for i in range((d+1)//2))
+        coeffs = [1] + list(middle_coeffs)
+    return R(coeffs[::-1])
 
 
 def get_PF_root(poly, ring, is_orientable):
@@ -355,11 +366,11 @@ def get_PF_root(poly, ring, is_orientable):
     # calculated correctly, so we have to check whether the largest
     # and second largest roots are too close.
     if root - abs_roots[-2] <= EPSILON:
-        # print 3
+        # print 3, abs_roots
         return None
 
     if 1/root - abs_roots[0] >= EPSILON:
-        # print 4
+        # print 4, poly
         return None
 
     if not is_orientable and 1/root - abs_roots[0] >= -EPSILON:
@@ -369,18 +380,73 @@ def get_PF_root(poly, ring, is_orientable):
     return largest_root_tuple[0].real()
 
 
-# def to_latex_table(candidates):
-#     s = "\\begin{tabular}{c|c}\n"
-#     s += "Largest root & Characteristic polynomial of action "\
-#          "on cohomology \\\\ \\hline\n"
-#     for cand in candidates:
-#         poly = cand[0]
-#         s += latex(cand[1]) + " & $" + latex(poly)
-#         if not poly.is_irreducible():
-#             s += "=" + latex(poly.factor())
-#         s += "$ \\\\ \\hline \n"
-#     s += "\\end{tabular}"
-#     return s
+def to_latex_table(candidates):
+    """
+    Creates a latex table of stretch factors and polynomials
+
+    INPUT:
+
+    - ``candidates`` -- a list of tuples (polynomial, stretch factor)
+
+    """
+    s = "\\begin{tabular}{c|c}\n"
+    s += "Largest root & Characteristic polynomial of action "\
+         "on cohomology \\\\ \\hline\n"
+    for cand in candidates:
+        poly = cand[0]
+        s += latex(cand[1]) + " & $" + latex(poly)
+        if not poly.is_irreducible():
+            s += "=" + latex(poly.factor())
+        s += "$ \\\\ \\hline \n"
+    s += "\\end{tabular}"
+    return s
 
 def roots(poly):
     return [x[0] for x in poly.roots(ring=QQbar)]
+
+
+upper_bounds = {3: 1.84, 4: 1.52, 5: 1.43, 6: 1.422, 7: 1.2885, 8:
+                1.3568, 9: 1.2173, 10: 1.22262, 11: 1.1743, 12:1.2764, 13:
+                1.145507, 14: 1.1875, 15:1.1249, 16:1.1426, 17:1.10939,
+                18:1.20515, 19:1.097305, 21:1.087629}
+
+
+
+# ------------------------------------
+import time
+
+def timed_test(g, largest_root_bound):
+    """
+    Tests and times a genus, and prints the results to a file and to the screen
+    as well.
+    """
+    start = time.time()
+    my_str = "\nTesting g=" + str(g) + " with limit on dilatation " +\
+                         str(largest_root_bound) + '\n'
+    result = find_polynomial_candidates(g,largest_root_bound,False)
+    for item in result:
+        my_str += repr(item) + '\n'
+
+        my_str += "Elapsed time:" + str(time.time() - start) + " seconds.\n"
+    print my_str
+    myfile = open("result_{0}.txt".format(g),'w')
+    myfile.write(my_str)
+    myfile.close()
+
+
+# -----------------------------------
+
+import argparse
+
+parser = argparse.ArgumentParser(description='Test polynomials.')
+parser.add_argument('degree', nargs = '?', type=int)
+parser.add_argument('largest_root_bound', nargs = '?', type=float)
+args = parser.parse_args()
+
+g = args.degree
+if g is not None:
+    largest_root_bound = args.largest_root_bound
+    if largest_root_bound is None:
+        largest_root_bound = upper_bounds[g]
+
+    timed_test(g, largest_root_bound)
