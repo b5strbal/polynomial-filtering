@@ -412,7 +412,7 @@ def roots(poly):
 upper_bounds = {3: 1.84, 4: 1.52, 5: 1.43, 6: 1.422, 7: 1.2885, 8:
                 1.3568, 9: 1.2173, 10: 1.22262, 11: 1.1743, 12:1.2764, 13:
                 1.145507, 14: 1.1875, 15:1.1249, 16:1.1426, 17:1.10939,
-                18:1.20515, 19:1.097305, 21:1.087629}
+                18:1.20515, 19:1.097305, 21:1.087629, 23:1.079704}
 
 
 def timed_test_by_first_trace(g, largest_root_bound):
@@ -425,7 +425,7 @@ def timed_test_by_first_trace(g, largest_root_bound):
     print traces
     for i in traces:
         # print 'sage polynomial_filtering.pyx ' + str(g) + ' --first_trace ' + str(i)
-        os.system('sage polynomial_filtering.pyx ' + str(g) + ' --first_trace ' + str(i))
+        os.system('sage polynomial_filtering.pyx ' + str(g) + ' --first_trace ' + str(i) + ' &')
 
 
 
