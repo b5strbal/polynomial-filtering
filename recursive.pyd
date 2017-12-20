@@ -1,0 +1,9 @@
+cpdef find_polynomials_recursive(int,
+                                int ,
+                                int ,
+                                long[:] ,
+                                long[:] ,
+                                long[:,:],
+                                int ,
+                                list ,
+                                long )
