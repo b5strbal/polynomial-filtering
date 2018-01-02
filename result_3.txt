@@ -1,4 +1,0 @@
-
-Testing g=3 with limit on dilatation 1.84
-(x^3 - x^2 - x - 1, 1.839286755214161)
-Elapsed time:0.00765180587769 seconds.
