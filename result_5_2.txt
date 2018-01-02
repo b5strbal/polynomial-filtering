@@ -1,4 +1,0 @@
-
-Testing g=5 with limit on dilatation 1.43
-Assuming that the first trace is 2
-Elapsed time:0.00290703773499 seconds.

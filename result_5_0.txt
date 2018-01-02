@@ -1,5 +1,0 @@
-
-Testing g=5 with limit on dilatation 1.43
-Assuming that the first trace is 0
-(x^5 - x^3 - x^2 - 1, 1.429108319838146?)
-Elapsed time:0.0217580795288 seconds.
