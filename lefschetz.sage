@@ -1,417 +1,28 @@
 import itertools
 import numpy as np
 from collections import namedtuple
+from data import results
 
 x = polygen(ZZ, 'x')
 
-poly_candidates = {
-    7: [
-        x^7 - x^4 - x^3 - 1
-    ],
-
-    8: [
-    x^8 - x^7 + x^6 - x^5 - x^4 + x^3 - x^2 + x - 1, # LEF 32
-    x^8 + x^7 - x^5 - 2*x^4 - x^3 - x - 1,
-    x^8 - x^7 - x^5 + x^3 - x + 1, # 7 4-pronged singularities that are
-        # permuted. Multiplying by (x^6+x^5+x^4+x^3+x^2+x+1), it is likely that
-        # the Teichmuller polynomial specializes to x^14 - x^11 - x^10 - 2*x^7
-        # + x^4 + x^3 + 1. This is also (x - 1) * (x^7 - x^4 - x^3 - 1).
-    x^8 + 2*x^7 + x^6 - x^5 - 2*x^4 - 3*x^3 - 3*x^2 - 2*x - 1, # LEF 28
-    x^8 - x^6 - x^5 - x^3 + x^2 + 1,  # LEF 24
-    x^8 + x^7 - x^6 - x^5 - x^3 - x^2 - x - 1,
-    x^8 - x^7 - x^6 + x^5 - x^3 + x^2 - x + 1, # 7 4-pronged singularities that are
-        # permuted. Multiplying by (x^6+x^5+x^4+x^3+x^2+x+1), it is likely that
-        # the Teichmuller polynomial specializes to x^14 - x^12 - x^9 - 2*x^7 +
-        # x^5 + x^2 + 1. This is also (x - 1) * (x^7 - x^5 - x^2 - 1)
-    x^8 - 2*x^5 - 1, # LEF 28
-    x^8 - x^6 - x^5 - x^4 - x^3 + x^2 + 2*x + 1,
-    x^8 + x^7 - 2*x^3 - 4*x^2 - 3*x - 1, # LEF 18
-    x^8 - x^7 - 2*x^5 + 2*x^4 - x + 1, # LEF 22
-    x^8 - x^7 - 2*x^3 + x + 1, # LEF 14 --- 14 fixed 4-pronged singularities
-    # for f^9, no regular fixed points, pretty sure it's impossible
-    x^8 - x^6 - x^5 - x^4 + x^3 + x^2 - 1, # LEF 14 --- same
-    x^8 + x^7 - 2*x^5 - 2*x^4 - x - 1, # LEF 26
-    x^8 - x^6 - x^5 + x^3 - x^2 - 1, # LEF 28
-    x^8 + x^7 - x^5 - 3*x^4 - x^3 - x - 1, # LEF 22
-    x^8 + x^6 - x^4 - 2*x^3 - 3*x^2 - 2*x - 1, # LEF 18
-    x^8 - x^5 - x^4 - x^3 - 1],
-
-    10: [
-        x^10 - x^7 - x^6 - x^5 + x^4 + x^3 - 1,
-        x^10 - x^9 + x^8 - x^7 - x^5 + x^3 - x^2 + x - 1,
-        x^10 + x^9 - x^6 - 2*x^5 - x^4 - x - 1,
-        x^10 - x^9 - x^6 + x^4 - x + 1,
-        x^10 - x^9 + x^7 - x^6 - x^5 + x^4 - x^3 + x - 1
-    ],
-
-    12: [x^12 - x^11 + x^10 - x^9 + x^8 - x^7 - x^6 + x^5 - x^4 + x^3 - x^2 + x - 1,
-         x^12 - x^11 - x^7 + x^5 - x + 1,
-         x^12 + x^11 - x^7 - 2*x^6 - x^5 - x - 1,
-         x^12 + x^11 - x^8 - x^7 - x^5 - x^4 - x - 1,
-         x^12 - x^11 - x^8 + x^7 - x^5 + x^4 - x + 1,
-         x^12 + 2*x^11 + 2*x^10 + x^9 - x^7 - 2*x^6 - 3*x^5 - 4*x^4 - 3*x^3 - 2*x^2 - 2*x - 1,
-         x^12 - x^9 - x^7 - x^5 + x^3 + 1,
-         x^12 - 2*x^7 - 1,
-         x^12 + x^11 - 2*x^7 - 2*x^6 - x - 1,
-         x^12 - x^11 - 2*x^7 + 2*x^6 - x + 1,
-         x^12 + x^11 - x^9 - x^8 - x^4 - x^3 - x - 1,
-         x^12 - x^11 - x^9 + x^8 - x^4 + x^3 - x + 1,
-         x^12 - x^11 - x^10 + 2*x^9 - x^8 + x^6 - 2*x^5 + x^4 - x^2 + x - 1,
-         x^12 + x^11 - x^10 - 2*x^9 - x^8 + x^6 - x^4 + x^2 + x + 1,
-         x^12 - x^10 - x^9 + x^8 + x^7 - x^6 - x^5 - x^4 + x^3 + x^2 - 1,
-         x^12 - x^11 + x^10 - x^9 - x^6 + x^3 - x^2 + x - 1,
-         x^12 - x^11 + x^9 - 2*x^7 - x^3 + x + 1,
-         x^12 - x^11 - x^9 + 2*x^8 - 2*x^7 + 2*x^4 - x^3 - x + 1,
-         x^12 + x^11 - x^9 - 2*x^6 - 2*x^5 + x^3 - x - 1,
-         x^12 + x^11 + x^9 + 2*x^8 - 2*x^6 - 2*x^5 - 2*x^4 - 3*x^3 - 4*x^2 - 3*x - 1,
-         x^12 + x^11 + x^10 - x^9 - 2*x^8 - 3*x^7 - x^6 + x^5 + 2*x^4 + x^3 - x^2 - x - 1,
-         x^12 - 2*x^11 + x^10 - x^9 + x^8 + 2*x^6 - 2*x^5 - x^4 + x^3 - x^2 + 2*x - 1,
-         x^12 + x^10 - x^9 - x^8 - 2*x^7 + x^4 + x^3 - x^2 - 1,
-         x^12 - x^10 - x^9 - x^8 + 2*x^6 + 2*x^5 - x^4 - x^3 - x^2 + 1,
-         x^12 - x^11 + x^10 - x^9 - x^7 + x^6 - x^5 + x^3 - x^2 + x - 1,
-         x^12 + 2*x^11 + x^10 - x^9 - 3*x^8 - 4*x^7 - 2*x^6 + 2*x^5 + 3*x^4 + x^3 - x^2 - 2*x - 1,
-         x^12 - x^11 + x^9 - x^8 - x^6 + x^4 - x^3 + x - 1,
-         x^12 + x^11 - x^10 - x^9 - x^3 - x^2 - x - 1,
-         x^12 - x^11 - x^10 + x^9 - x^3 + x^2 - x + 1,
-         x^12 - x^11 + x^9 - 2*x^8 + x^6 - 2*x^5 + x^3 + x + 1,
-         x^12 - x^11 + x^9 - 2*x^8 + 2*x^7 - x^6 - 2*x^5 + 2*x^4 - x^3 + x - 1,
-         x^12 - 2*x^7 - x^6 + 1,
-         x^12 - x^11 + x^8 - x^7 - x^6 + x^5 - x^4 + x - 1,
-         x^12 - x^11 + x^8 - 2*x^7 + x^6 - x^4 + x - 1,
-         x^12 - x^11 + x^10 - x^9 - x^8 + x^7 - x^6 + x^5 - x^4 + x^3 - x^2 + x - 1,
-         x^12 - x^10 - x^9 + x^7 + x^6 - x^5 - 2*x^4 + x^3 + x^2 - 1,
-         x^12 - 3*x^11 + 4*x^10 - 4*x^9 + 3*x^8 - 2*x^7 + 2*x^6 - 3*x^4 + 4*x^3 - 4*x^2 + 3*x - 1,
-         x^12 - x^11 + 2*x^10 - 2*x^9 + x^8 - 2*x^7 - x^4 + 2*x^3 - 2*x^2 + x - 1,
-         x^12 + x^11 - x^8 - 2*x^7 - 2*x^6 + x^4 - x - 1,
-         x^12 - x^11 - x^8 + 2*x^5 - x^4 - x + 1,
-         x^12 - 2*x^11 + 3*x^10 - 3*x^9 + 2*x^8 - 2*x^7 + x^6 - 2*x^4 + 3*x^3 - 3*x^2 + 2*x - 1,
-         x^12 + x^10 - x^9 - 2*x^7 - x^6 + x^3 - x^2 - 1,
-         x^12 - 3*x^11 + 3*x^10 - x^9 - x^8 + 2*x^7 - 2*x^5 + x^4 - x^3 + 3*x^2 - 3*x + 1,
-         x^12 + x^11 + x^10 + x^9 - x^8 - 2*x^7 - 2*x^6 - 2*x^5 - x^4 - x^3 - x^2 - x - 1,
-         x^12 + 3*x^11 + 3*x^10 + x^9 - x^8 - 4*x^7 - 6*x^6 - 4*x^5 - x^4 - x^3 - 3*x^2 - 3*x - 1,
-         x^12 - x^9 - x^8 - x^7 + x^5 + x^4 - x^3 + 1,
-         x^12 + 2*x^11 + 2*x^10 + x^9 - x^8 - 3*x^7 - 4*x^6 - 3*x^5 - x^4 - x^3 - 2*x^2 - 2*x - 1,
-         x^12 - x^11 + x^10 - x^9 - x^8 + x^4 - x^3 + x^2 - x + 1,
-         x^12 + x^9 - x^8 - x^7 - x^5 - x^4 - x^3 - 1,
-         x^12 + x^11 - x^10 - x^9 - x^8 - 2*x^7 + 2*x^5 + x^4 - x^3 - x^2 + x + 1,
-         x^12 - 2*x^11 + 2*x^10 - x^9 - x^8 + x^7 - x^5 + x^4 - x^3 + 2*x^2 - 2*x + 1,
-         x^12 - x^11 - x^10 + x^9 - x^8 + 2*x^6 - x^4 - x^3 + x^2 + x - 1,
-         x^12 - x^10 + x^9 - 2*x^5 - x^3 - x^2 - 1,
-         x^12 - 2*x^11 + x^10 + x^9 - 2*x^8 + 2*x^7 - 2*x^6 + 2*x^4 - 3*x^3 + 3*x^2 - 2*x + 1,
-         x^12 - x^7 - x^6 - x^5 - 1,
-         x^12 + x^11 - x^10 + x^8 - 2*x^7 - 2*x^6 - x^4 + x^2 - x - 1,
-         x^12 - 3*x^11 + 3*x^10 - 3*x^8 + 2*x^7 + 2*x^6 - 4*x^5 + 3*x^4 - 3*x^2 + 3*x - 1,
-         x^12 - x^11 + x^10 - x^8 - 2*x^5 + x^4 - x^2 + x - 1,
-         x^12 - x^11 - x^10 + 2*x^9 - x^8 - 2*x^7 + 2*x^6 - x^4 + 2*x^3 - x^2 - x + 1,
-         x^12 - 2*x^11 + 2*x^10 - 2*x^8 + x^7 + x^6 - 3*x^5 + 2*x^4 - 2*x^2 + 2*x - 1,
-         x^12 - 3*x^11 + 4*x^10 - 4*x^9 + 2*x^8 + 2*x^7 - 4*x^6 + 4*x^5 - 4*x^4 + 4*x^3 - 4*x^2 + 3*x - 1,
-         x^12 + x^10 - x^9 - x^8 - x^7 - x^6 + x^5 - x^4 + x^3 - x^2 - 1,
-         x^12 - 2*x^11 + 3*x^10 - 3*x^9 + x^8 + x^7 - 3*x^6 + 3*x^5 - 3*x^4 + 3*x^3 - 3*x^2 + 2*x - 1,
-         x^12 + x^11 - 2*x^8 - 2*x^7 - x - 1,
-         x^12 - x^11 - 2*x^8 + 2*x^7 - x + 1,
-         x^12 - x^11 + 2*x^10 - 2*x^9 - 2*x^6 + 2*x^5 - 2*x^4 + 2*x^3 - 2*x^2 + x - 1,
-         x^12 + x^11 - x^10 - x^9 - x^7 + x^5 - x^3 - x^2 - x - 1,
-         x^12 - x^11 - x^10 + x^9 - x^7 + 2*x^6 - x^5 - x^3 + x^2 - x + 1,
-         x^12 - x^11 - x^6 + 2*x^5 - 2*x^4 + x - 1,
-         x^12 + x^11 - x^9 - x^8 - 2*x^7 - x^6 + x^4 + x^3 - x - 1,
-         x^12 - x^9 - x^8 - x^6 + x^4 + x^3 - 1,
-         x^12 - x^8 - x^7 + x^6 - x^5 - x^4 - 1,
-         x^12 - 3*x^11 + 3*x^10 - x^9 + x^7 - 4*x^6 + 5*x^5 - 2*x^4 + x^3 - 3*x^2 + 3*x - 1,
-         x^12 - x^11 + x^10 - x^9 + x^7 - 2*x^6 + x^5 - 2*x^4 + x^3 - x^2 + x - 1,
-         x^12 + x^11 - x^10 - x^9 + x^7 - 3*x^5 - 2*x^4 + x^3 + x^2 - x - 1,
-         x^12 - x^11 - x^10 + x^9 + x^7 - 2*x^6 - x^5 + 2*x^4 + x^3 - x^2 - x + 1,
-         x^12 - x^9 + x^7 - x^6 - x^5 - 2*x^4 + x^3 - 1,
-         x^12 - 2*x^11 + 2*x^10 - x^9 + x^7 - 3*x^6 + 3*x^5 - 2*x^4 + x^3 - 2*x^2 + 2*x - 1,
-         x^12 - x^11 + x^10 - 2*x^9 + x^8 - x^7 + x^6 - x^5 + x^4 - x^2 + x - 1,
-         x^12 - x^11 - x^7 + x^6 + x^5 - 2*x^4 + x - 1,
-         x^12 - 2*x^11 + x^9 + x^8 - 2*x^7 + 2*x^6 - x^4 - x^3 + 2*x^2 - 2*x + 1,
-         x^12 - 2*x^11 + 3*x^9 - 3*x^8 + 2*x^6 - 2*x^5 + x^4 + x^3 - 2*x^2 + 2*x - 1,
-         x^12 - 2*x^10 - x^9 + x^8 + 2*x^5 + x^4 - x^3 - 1,
-         x^12 - x^9 - x^8 - 2*x^7 + x^4 + x^3 + 2*x^2 + 1,
-         x^12 + 2*x^11 - 3*x^9 - 3*x^8 - 2*x^7 - 2*x^6 + 3*x^4 + 3*x^3 + 2*x^2 + 2*x + 1,
-         x^12 + x^9 - x^8 - 2*x^5 - x^4 - x^3 - 2*x^2 - 1,
-         x^12 + x^11 - x^6 - 2*x^5 - 2*x^4 - 2*x^3 - 2*x^2 - x - 1,
-         x^12 + 2*x^11 - x^9 + x^8 - 2*x^6 - 2*x^5 - 3*x^4 - 3*x^3 - 2*x^2 - 2*x - 1,
-         x^12 - x^11 + 2*x^9 - 2*x^8 + x^6 - 2*x^5 - 2*x^2 + x - 1,
-         x^12 - 2*x^10 + x^9 + x^8 - 2*x^7 - x^4 + x^3 + 1,
-         x^12 - x^11 - 2*x^7 + x^6 + 2*x^2 - x + 1,
-         x^12 + x^11 - 2*x^9 - 2*x^8 - 2*x^7 - x^6 + 2*x^4 + 2*x^3 + 2*x^2 + x + 1,
-         x^12 - 4*x^11 + 8*x^10 - 11*x^9 + 10*x^8 - 4*x^7 - 4*x^6 + 10*x^5 - 12*x^4 + 11*x^3 - 8*x^2 + 4*x - 1,
-         x^12 - 3*x^11 + 3*x^10 - x^9 - 2*x^8 + 6*x^7 - 6*x^6 + 2*x^5 - x^3 + 3*x^2 - 3*x + 1,
-         x^12 - x^11 + 3*x^10 - 3*x^9 + 2*x^8 - 2*x^7 - 2*x^6 + 2*x^5 - 4*x^4 + 3*x^3 - 3*x^2 + x - 1,
-         x^12 + 3*x^11 + 3*x^10 + x^9 - 2*x^8 - 6*x^7 - 6*x^6 - 2*x^5 - x^3 - 3*x^2 - 3*x - 1,
-         x^12 - x^11 - x^8 + x^7 + x^6 - x^5 - x^4 + x - 1,
-         x^12 - 2*x^11 + 2*x^10 - x^9 - 2*x^8 + 4*x^7 - 4*x^6 + 2*x^5 - x^3 + 2*x^2 - 2*x + 1,
-         x^12 - x^11 + 2*x^10 - 2*x^9 + x^8 - x^7 - x^6 + x^5 - 3*x^4 + 2*x^3 - 2*x^2 + x - 1,
-         x^12 - x^11 - x^10 + x^9 - 2*x^8 + 2*x^7 + 2*x^6 - 2*x^5 - x^3 + x^2 + x - 1,
-         x^12 + x^11 - x^10 - x^9 - 2*x^8 - 2*x^7 + 2*x^6 + 2*x^5 - x^3 - x^2 + x + 1,
-         x^12 + x^10 - x^8 - x^7 - x^6 - x^5 - x^4 - x^2 - 1,
-         x^12 + 2*x^11 + 2*x^10 + x^9 - 2*x^8 - 4*x^7 - 4*x^6 - 2*x^5 - x^3 - 2*x^2 - 2*x - 1,
-         x^12 - 2*x^11 + 4*x^10 - 5*x^9 + 4*x^8 - 2*x^7 - 2*x^6 + 4*x^5 - 6*x^4 + 5*x^3 - 4*x^2 + 2*x - 1,
-         x^12 - x^9 - 2*x^8 + 2*x^5 - x^3 + 1,
-         x^12 + x^11 + x^10 + x^9 - 2*x^8 - 2*x^7 - 2*x^6 - 2*x^5 - x^3 - x^2 - x - 1,
-         x^12 + 2*x^10 - x^9 - 2*x^7 - 2*x^6 - 2*x^4 + x^3 - 2*x^2 - 1,
-         x^12 - 3*x^11 + 6*x^10 - 8*x^9 + 7*x^8 - 3*x^7 - 3*x^6 + 7*x^5 - 9*x^4 + 8*x^3 - 6*x^2 + 3*x - 1,
-         x^12 - x^11 + x^10 - x^9 - 2*x^8 + 2*x^7 - 2*x^6 + 2*x^5 - x^3 + x^2 - x + 1,
-         x^12 - 2*x^11 + 3*x^10 - 4*x^9 + 3*x^8 - x^7 - x^6 + 3*x^5 - 5*x^4 + 4*x^3 - 3*x^2 + 2*x - 1,
-         x^12 - x^11 + x^10 - x^9 - 2*x^4 + x^3 - x^2 + x - 1,
-         x^12 + x^9 - 2*x^8 - 2*x^5 - x^3 - 1,
-         x^12 - 2*x^11 + 2*x^10 - 3*x^9 + 2*x^8 + 2*x^5 - 4*x^4 + 3*x^3 - 2*x^2 + 2*x - 1,
-         x^12 + x^11 + 2*x^10 - x^8 - 3*x^7 - 3*x^6 - x^5 - x^4 - 2*x^2 - x - 1,
-         x^12 - 3*x^11 + 5*x^10 - 7*x^9 + 6*x^8 - 2*x^7 - 2*x^6 + 6*x^5 - 8*x^4 + 7*x^3 - 5*x^2 + 3*x - 1,
-         x^12 - 5*x^11 + 11*x^10 - 15*x^9 + 14*x^8 - 6*x^7 - 6*x^6 + 14*x^5 - 16*x^4 + 15*x^3 - 11*x^2 + 5*x - 1,
-         x^12 - x^9 - x^7 - 2*x^6 - x^5 + x^3 + 2*x^2 + 2*x + 1,
-         x^12 + x^11 - 2*x^10 - 3*x^9 + x^8 + 3*x^7 - x^5 - x^4 - x^3 + x + 1,
-         x^12 + x^11 - x^9 - x^8 - x^7 + x^5 - x^4 - x^3 - 2*x^2 - x - 1,
-         x^12 - x^11 - 2*x^10 + x^9 + 3*x^8 - x^7 - 2*x^6 + x^5 - x^4 + x^3 + x - 1,
-         x^12 + 3*x^11 + 2*x^10 - 3*x^9 - 5*x^8 - x^7 + 2*x^6 + x^5 - x^4 - 3*x^3 - 4*x^2 - 3*x - 1,
-         x^12 - x^10 + x^8 - x^7 - x^6 + x^5 - x^4 - x^2 - 1,
-         x^12 + 2*x^11 + x^10 - 2*x^9 - 3*x^8 - x^7 + x^6 + x^5 - x^4 - 2*x^3 - 3*x^2 - 2*x - 1,
-         x^12 - x^10 + x^9 - 2*x^7 + x^6 - 2*x^4 - x^3 + x^2 - 1,
-         x^12 + x^11 + x^8 - 2*x^6 - 2*x^5 - 3*x^4 - 2*x^3 - 2*x^2 - x - 1,
-         x^12 + x^11 - x^9 - 2*x^8 - x^7 + x^5 - x^3 - x - 1,
-         x^12 - 2*x^11 + 3*x^10 - 4*x^9 + 4*x^8 - 4*x^7 + 3*x^6 - 2*x^5 + 2*x^3 - 3*x^2 + 2*x - 1,
-         x^12 + x^10 - 2*x^9 - 2*x^7 + x^6 - x^2 - 1,
-         x^12 - x^11 + 2*x^10 - 3*x^9 + 2*x^8 - 3*x^7 + 2*x^6 - x^5 + x^3 - 2*x^2 + x - 1,
-         x^12 - x^11 - x^9 + x^7 + x^5 - 2*x^4 + x^3 - x + 1,
-         x^12 - 3*x^11 + 4*x^10 - 5*x^9 + 6*x^8 - 5*x^7 + 4*x^6 - 3*x^5 + 3*x^3 - 4*x^2 + 3*x - 1,
-         x^12 - x^9 - 2*x^7 + x^6 - x^3 + 1,
-         x^12 - x^8 - 2*x^7 + x^4 - 1,
-         x^12 + x^11 + x^10 - x^9 - 2*x^8 - 3*x^7 - x^6 - x^5 + x^3 + x^2 + x + 1,
-         x^12 - x^10 - x^7 - x^6 + x^5 + x^2 - 1,
-         x^12 - x^8 - x^7 - x^6 - x^5 + x^4 + 1,
-         x^12 - 2*x^11 + 2*x^10 - 2*x^9 + 3*x^8 - 3*x^7 + x^6 - x^5 + x^4 - 2*x^2 + 2*x - 1,
-         x^12 - x^11 - x^10 + x^9 + x^8 - 2*x^7 + x^4 + x^3 - x^2 - x + 1,
-         x^12 + x^11 - x^10 - x^9 + x^8 - 2*x^6 - 2*x^5 - x^4 + x^3 + x^2 - x - 1,
-         x^12 - x^11 - 2*x^10 + 2*x^9 + x^8 - x^7 - x^5 + x^4 + x - 1,
-         x^12 - x^10 - x^9 + x^7 - x^5 - x^3 + x^2 + 1,
-         x^12 - x^11 - x^8 + x^7 - x^5 + x^4 - 2*x^3 + 2*x^2 - x + 1,
-         x^12 + x^11 - x^8 - x^7 - x^5 - x^4 - 2*x^3 - 2*x^2 - x - 1,
-         x^12 + 2*x^11 + x^10 - x^9 - 2*x^8 - x^7 - x^5 - 2*x^4 - 3*x^3 - 3*x^2 - 2*x - 1,
-         x^12 - 2*x^11 + x^10 + x^9 - 2*x^8 + x^7 - x^5 + 2*x^4 - 3*x^3 + 3*x^2 - 2*x + 1,
-         x^12 - x^10 + x^9 - x^7 - x^5 - x^3 - x^2 - 1,
-         x^12 + 3*x^11 + 2*x^10 - 2*x^9 - 3*x^8 - x^7 - x^5 - 3*x^4 - 4*x^3 - 4*x^2 - 3*x - 1,
-         x^12 + x^11 - 2*x^10 - 2*x^9 + x^8 + x^7 - x^5 - x^4 + x + 1,
-         x^12 - 3*x^11 + 2*x^10 + 2*x^9 - 3*x^8 + x^7 - x^5 + 3*x^4 - 4*x^3 + 4*x^2 - 3*x + 1,
-         x^12 - x^9 - x^7 - x^5 + x^3 - 1,
-         x^12 - 2*x^7 - x^6 - 1,
-         x^12 - x^11 - x^10 + x^9 + x^8 - 3*x^6 + 2*x^5 + x^4 - 3*x^3 + x^2 + x - 1,
-         x^12 - 2*x^11 + x^10 - x^2 + 1,
-         x^12 - x^10 - x^2 - 2*x - 1,
-         x^12 + x^11 - x^7 - x^6 - x^5 - 2*x^4 - 2*x^3 - 2*x^2 - x - 1,
-         x^12 - 2*x^11 + 3*x^10 - 4*x^9 + 4*x^8 - 5*x^7 + 5*x^6 - 3*x^5 + 2*x^3 - 3*x^2 + 2*x - 1,
-         x^12 - x^8 - x^6 - 2*x^5 + x^4 - 1,
-         x^12 - x^11 + x^10 - x^9 + 2*x^8 - 2*x^7 - x^6 - x^3 - x^2 + x - 1,
-         x^12 - 2*x^11 + x^10 + x^8 - 2*x^7 + 2*x^6 - 4*x^5 + 5*x^4 - 4*x^3 + 3*x^2 - 2*x + 1,
-         x^12 - x^10 + x^8 - 2*x^5 - x^4 - x^2 - 1,
-         x^12 + x^11 - x^9 - x^8 - x^6 - 2*x^5 - x^4 + x^3 - x - 1,
-         x^12 - x^10 + x^9 + x^8 - x^7 - x^6 - x^5 - x^4 - x^3 - x^2 - 1,
-         x^12 - x^11 + x^10 - 2*x^9 + x^8 - 2*x^7 + 2*x^6 - 2*x^5 + 3*x^4 - 2*x^3 + x^2 - x + 1,
-         x^12 + x^11 + x^10 - x^8 - 2*x^7 - 2*x^6 - 2*x^5 - x^4 - x^2 - x - 1,
-         x^12 - 3*x^11 + 5*x^10 - 6*x^9 + 5*x^8 - 4*x^7 + 4*x^6 - 4*x^5 + 3*x^4 - 2*x^3 + x^2 - x + 1,
-         x^12 - x^11 + x^10 - x^8 - x^4 - x^2 - x - 1,
-         x^12 - x^10 - x^7 - x^5 + x^2 + 1,
-         x^12 + 2*x^11 + x^10 - x^7 - 2*x^6 - 3*x^5 - 4*x^4 - 4*x^3 - 3*x^2 - 2*x - 1,
-         x^12 - x^10 - x^9 + 2*x^7 - x^6 - 2*x^5 + x^3 + x^2 - 1,
-         x^12 - x^11 + x^8 - x^7 - x^6 - x^5 + x^4 + x - 1,
-         x^12 - x^11 + x^9 - x^8 - x^7 + x^6 + x^5 - x^4 - x^3 - x - 1,
-         x^12 + x^11 - x^10 - x^9 - 2*x^5 - 2*x^4 + x^3 + x^2 - x - 1,
-         x^12 - x^11 - x^10 + x^9 - 2*x^5 + 2*x^4 + x^3 - x^2 - x + 1,
-         x^12 + x^11 - 3*x^7 - 3*x^6 - x^5 + x + 1,
-         x^12 - x^11 + x^10 - x^9 - x^7 - x^6 + x^5 + x^3 - x^2 + x - 1,
-         x^12 - x^10 + x^9 + x^8 - 3*x^7 - x^6 + x^5 - x^4 - x^3 + x^2 - 1,
-         x^12 - x^11 - x^8 + 2*x^6 - x^4 - x - 1,
-         x^12 + x^9 - x^7 - x^6 - x^5 - 2*x^4 - x^3 - 2*x^2 - 1,
-         x^12 + x^11 - x^10 - x^9 - x^7 - 2*x^6 - x^5 + x^3 + x^2 + x + 1,
-         x^12 + 2*x^11 + 2*x^10 + x^9 - x^7 - 3*x^6 - 5*x^5 - 6*x^4 - 5*x^3 - 4*x^2 - 2*x - 1,
-         x^12 + 3*x^11 + 3*x^10 + x^9 - x^7 - 4*x^6 - 7*x^5 - 8*x^4 - 7*x^3 - 5*x^2 - 3*x - 1,
-         x^12 - x^11 - x^10 + x^9 - x^7 + x^5 + x^3 - x^2 + x - 1,
-         x^12 + x^11 + x^10 + x^9 - x^7 - 2*x^6 - 3*x^5 - 4*x^4 - 3*x^3 - 3*x^2 - x - 1,
-         x^12 + x^11 - x^9 - x^8 - x^7 - 2*x^6 - x^5 + x^4 + x^3 - x - 1,
-         x^12 - x^11 - x^9 + x^8 - x^7 + x^5 + x^4 - x^3 - x + 1,
-         x^12 - x^10 - x^6 - 2*x^5 + 2*x^3 + x^2 - 1,
-         x^12 - x^8 - x^7 - x^6 + x^5 - x^4 - 1,
-         x^12 + 2*x^11 + x^10 - 2*x^9 - 3*x^8 - x^7 - x^5 - x^4 - x^2 - 2*x - 1,
-         x^12 - x^10 - 2*x^9 + x^8 + x^7 - x^5 + x^4 - x^2 + 1,
-         x^12 - x^10 + x^8 - 2*x^7 - x^6 + x^4 - x^2 + 1,
-         x^12 - x^9 - x^8 - x^4 + x^3 - 1,
-         x^12 - 2*x^8 - x^7 + x^6 - x^5 + 1,
-         x^12 - x^11 + x^10 - x^9 + x^8 - x^7 - 2*x^6 + x^5 - x^4 + x^3 - x^2 + x - 1,
-         x^12 - x^11 + x^10 - x^9 - 2*x^7 + x^6 + x^3 - x^2 + x - 1,
-         x^12 + x^10 - 2*x^9 - x^8 - 2*x^7 - x^6 + 2*x^5 + x^4 + 2*x^3 - x^2 - 1,
-         x^12 + x^11 - 2*x^9 - 2*x^8 - x^7 + x^6 + x^5 - x - 1,
-         x^12 - x^8 - 2*x^5 - x^4 - 1,
-         x^12 - 2*x^11 + 2*x^10 - 2*x^9 + x^8 - 2*x^5 + 3*x^4 - 2*x^3 + 2*x^2 - 2*x + 1,
-         x^12 + 2*x^11 + x^10 - 2*x^8 - 5*x^7 - 4*x^6 - x^5 + x^2 + 2*x + 1,
-         x^12 - x^11 + x^10 - 2*x^8 + x^7 - x^6 - x^5 + x^2 - x + 1,
-         x^12 - x^10 - 2*x^8 - x^7 + 2*x^6 + x^5 + x^2 - 1,
-         x^12 - 2*x^11 + x^10 - 2*x^8 + 3*x^7 - x^5 + x^2 - 2*x + 1,
-         x^12 + x^11 + x^10 - 2*x^8 - 3*x^7 - 3*x^6 - x^5 + x^2 + x + 1,
-         x^12 + x^10 - 2*x^8 - x^7 - 2*x^6 - x^5 + x^2 + 1,
-         x^12 + x^11 - 2*x^9 - x^8 - 2*x^5 - x^4 + x + 1,
-         x^12 + x^9 - 2*x^8 - x^7 - 3*x^5 + x^3 + 1,
-         x^12 - x^11 + x^10 - 2*x^9 + x^8 - x^6 - x^4 + 2*x^3 - x^2 + x - 1,
-         x^12 - 2*x^11 + 2*x^10 - x^9 - x^8 + 3*x^7 - 2*x^6 - x^5 + x^4 - x^3 - 1,
-         x^12 - x^11 + x^10 - x^9 + x^8 - 2*x^7 - x^4 + x^3 - x^2 + x - 1,
-         x^12 + x^10 - x^9 - x^8 - 2*x^7 - x^6 - x^4 + x^3 + x^2 + 1,
-         x^12 + x^11 - 2*x^7 - 2*x^6 - 2*x^4 - 2*x^3 - x - 1,
-         x^12 - x^11 - 2*x^7 + 2*x^6 - 2*x^4 + 2*x^3 - x + 1,
-         x^12 + x^11 - 3*x^9 - 2*x^8 + 2*x^6 + x^3 - x - 1,
-         x^12 - x^11 - x^9 + x^8 - x^6 + x^4 + x^3 - x - 1,
-         x^12 + x^11 - x^9 - 2*x^8 - x^7 - x^5 + x^3 - x - 1,
-         x^12 - x^11 - x^9 + x^7 - x^5 + 2*x^4 - x^3 - x + 1,
-         x^12 - 2*x^10 - x^9 + 2*x^8 - x^6 + 2*x^5 - x^3 - 1,
-         x^12 - 2*x^11 + x^10 + x^9 - x^8 - x^6 + 2*x^5 - 3*x^4 + 3*x^3 - 3*x^2 + 2*x - 1,
-         x^12 - x^11 - x^10 + x^9 + x^8 - x^7 - x^6 + x^5 - x^4 + x^3 - x^2 + x - 1,
-         x^12 - x^11 - x^10 + 2*x^9 - x^8 - x^7 + x^6 - x^5 + x^4 - x^2 + x - 1,
-         x^12 - x^10 - x^8 - x^7 + x^6 + x^5 - x^4 + x^2 - 1,
-         x^12 - x^11 - 2*x^8 + 3*x^7 - x^6 - x^5 + 2*x^4 - 2*x^3 + x - 1,
-         x^12 - x^10 + x^9 - 3*x^7 + x^6 + x^5 - 2*x^4 - x^3 + x^2 - 1,
-         x^12 - x^11 + x^7 - 3*x^6 + x^5 + x - 1,
-         x^12 - x^11 + x^9 - 2*x^8 + x^7 - x^6 - x^5 + 2*x^4 - x^3 + x - 1,
-         x^12 - x^11 + x^10 - x^9 - x^8 + x^7 - 3*x^6 + 3*x^5 - x^4 + x^3 - x^2 + x - 1,
-         x^12 - x^10 - x^7 + x^5 - 2*x^4 + x^2 - 1,
-         x^12 - x^11 - x^10 + 2*x^9 - x^7 - x^5 - x^2 + x - 1,
-         x^12 - x^11 + x^10 - x^9 - x^6 + x^3 - x^2 - x - 1,
-         x^12 - x^11 + x^9 - x^7 - x^6 + x^5 - 2*x^4 + x^3 - 2*x^2 + x - 1,
-         x^12 - x^11 + x^10 - x^8 + x^7 - 3*x^6 + x^5 - x^4 - x^2 + x - 1,
-         x^12 - x^8 - 2*x^6 + x^4 - 2*x^3 - 1,
-         x^12 - 2*x^11 + 2*x^10 - 2*x^9 + x^8 - 2*x^6 + 4*x^5 - 3*x^4 + 2*x^2 - 2*x + 1,
-         x^12 + x^10 - 2*x^9 + x^8 - 2*x^7 + x^6 - 2*x^5 - x^4 - x^2 - 1,
-         x^12 - x^11 + x^9 - 2*x^7 - x^3 + x - 1,
-         x^12 - x^11 + x^8 - 2*x^7 - x^6 + 2*x^5 - x^4 + x - 1,
-         x^12 + x^11 + 2*x^10 - x^8 - 2*x^7 - 3*x^6 - 2*x^5 - 3*x^4 - 2*x^3 - 2*x^2 - x - 1,
-         x^12 + x^11 - x^9 - x^8 - x^7 + x^6 - x^5 - 3*x^4 - x^3 - x - 1,
-         x^12 + x^11 + x^10 - x^9 - 2*x^8 - 2*x^7 - x^6 - x^3 - x^2 - x - 1,
-         x^12 - x^9 - x^7 - x^6 + x^5 - x^3 - 1,
-         x^12 - 2*x^11 + x^10 - x^8 + x^7 + x^5 - x^4 - x^2 + 2*x - 1,
-         x^12 - x^10 - x^8 - x^7 + x^5 + x^4 - x^2 + 1,
-         x^12 + x^10 - x^8 - x^7 - 2*x^6 - x^5 - x^4 - x^2 - 1,
-         x^12 - x^11 + x^10 - x^8 - x^6 - x^4 - x^2 + x - 1,
-         x^12 + 2*x^11 + x^10 - x^8 - 3*x^7 - 4*x^6 - 3*x^5 - x^4 - x^2 - 2*x - 1,
-         x^12 + x^11 + x^10 - x^8 - 2*x^7 - 3*x^6 - 2*x^5 - x^4 - x^2 - x - 1,
-         x^12 - x^8 - x^7 + x^6 + x^5 - x^4 - 2*x^3 - 2*x^2 - 2*x - 1,
-         x^12 - x^9 - x^8 - x^7 + x^5 + x^4 - x^3 - 1,
-         x^12 - 2*x^11 + x^10 - x^9 + x^8 + x^7 - 2*x^6 + 3*x^5 - 3*x^4 + x^3 - x^2 + 2*x - 1,
-         x^12 + x^11 + x^10 - x^9 - 2*x^8 - 2*x^7 - 2*x^6 + x^3 - x^2 - x - 1,
-         x^12 + x^10 - x^9 - x^8 - x^7 - 2*x^6 + x^5 - x^4 + x^3 - x^2 - 1,
-         x^12 - x^10 - x^9 - x^8 + x^7 + x^5 + x^4 - x^3 - x^2 + 1,
-         x^12 - x^11 + x^10 - x^9 - 2*x^6 + 2*x^5 - 2*x^4 + x^3 - x^2 + x - 1,
-         x^12 + 2*x^11 + x^10 - x^9 - 3*x^8 - 3*x^7 - 2*x^6 - x^5 + x^4 + x^3 - x^2 - 2*x - 1,
-         x^12 - x^7 - 2*x^6 - x^5 - 1,
-         x^12 - 2*x^11 + 2*x^10 - 2*x^9 + 2*x^8 - 3*x^7 + 2*x^6 - x^5 + 2*x^4 - 2*x^3 + 2*x^2 - 2*x + 1,
-         x^12 - 2*x^11 + 2*x^10 - 2*x^9 + x^8 + x^7 - 2*x^6 + x^5 - x^4 + 1,
-         x^12 - x^8 + x^7 - x^5 - x^4 - 2*x^3 - 2*x^2 - 2*x - 1,
-         x^12 - x^8 - x^7 - x^6 - x^5 + x^4 - 1,
-         x^12 - x^10 + x^8 - x^7 - x^5 - x^4 - x^2 - 1,
-         x^12 - 2*x^11 + x^10 + x^8 - 3*x^7 + 4*x^6 - 5*x^5 + 5*x^4 - 4*x^3 + 3*x^2 - 2*x + 1,
-         x^12 - x^11 - x^10 + 2*x^9 - 2*x^7 + 2*x^6 - 2*x^5 - x^2 + x - 1,
-         x^12 + x^11 - x^9 - x^8 - 2*x^7 - 2*x^6 + x^4 + x^3 - x - 1,
-         x^12 - x^11 - x^9 + x^8 - 2*x^7 + 2*x^6 + x^4 - x^3 - x + 1,
-         x^12 + x^11 - x^10 - 2*x^9 + x^7 - x^5 - 2*x^4 + x^2 - x - 1,
-         x^12 - x^11 - x^10 + 2*x^8 - x^7 - x^5 + 2*x^3 - x^2 - x + 1,
-         x^12 + x^11 - x^8 - 2*x^7 - 3*x^6 - 2*x^5 + x^4 + 2*x^3 - x - 1,
-         x^12 - x^11 + x^10 - x^9 - x^8 - x^6 + 2*x^5 - x^4 + x^3 - x^2 + x - 1,
-         x^12 - x^11 + x^10 - x^9 - x^6 - 2*x^5 + 2*x^4 - x^3 + x^2 - x + 1,
-         x^12 + x^11 - 2*x^9 - x^8 - x^7 - x^6 - x^5 + x^4 + x + 1,
-         x^12 - 2*x^7 - 2*x^6 + 1,
-         x^12 - x^10 - x^7 + x^6 - x^5 - x^2 - 1,
-         x^12 - x^9 - x^7 - 2*x^6 + x^5 + x^3 - 1,
-         x^12 - x^11 - x^6 + x - 1],
-
-    14: [x^14 + x^13 - x^8 - 2*x^7 - x^6 - x - 1,
-         x^14 - x^13 - x^8 + x^6 - x + 1,
-         x^14 - x^13 - x^9 + x^8 - x^6 + x^5 - x + 1,
-         x^14 + x^13 - x^9 - x^8 - x^6 - x^5 - x - 1,
-         x^14 - x^13 - x^10 + x^9 - x^5 + x^4 - x + 1,
-         x^14 + x^13 - x^10 - x^9 - x^5 - x^4 - x - 1,
-         x^14 - 3*x^13 + 4*x^12 - 4*x^11 + 4*x^10 - 4*x^9 + 2*x^8 + 2*x^7 - 4*x^6 + 4*x^5 - 4*x^4 + 4*x^3 - 4*x^2 + 3*x - 1,
-         x^14 - 2*x^13 + 3*x^12 - 3*x^11 + 3*x^10 - 3*x^9 + x^8 + x^7 - 3*x^6 + 3*x^5 - 3*x^4 + 3*x^3 - 3*x^2 + 2*x - 1,
-         x^14 + x^13 - 2*x^8 - 2*x^7 - x - 1,
-         x^14 - x^13 - 2*x^8 + 2*x^7 - x + 1,
-         x^14 - x^13 + 2*x^12 - 2*x^11 + 2*x^10 - 2*x^9 - 2*x^6 + 2*x^5 - 2*x^4 + 2*x^3 - 2*x^2 + x - 1,
-         x^14 + x^12 - x^11 + x^10 - x^9 - x^8 - x^7 - x^6 + x^5 - x^4 + x^3 - x^2 - 1,
-         x^14 - x^11 - x^10 - x^7 + x^4 + x^3 + 1,
-         x^14 - x^11 - x^10 + x^7 - x^4 + x^3 - 1,
-         x^14 - x^13 - x^11 + x^10 - x^4 + x^3 - x + 1,
-         x^14 + x^13 - x^11 - x^10 - x^4 - x^3 - x - 1,
-         x^14 - x^10 - x^9 - x^7 + x^5 + x^4 - 1,
-         x^14 - x^9 - x^8 - x^6 + x^5 - 1,
-         x^14 - 2*x^8 - x^7 + 1,
-         x^14 - 3*x^13 + 3*x^12 - x^11 - x^9 + 2*x^8 - 2*x^6 + x^5 - x^3 + 3*x^2 - 3*x + 1,
-         x^14 + 2*x^13 + 2*x^12 + x^11 - x^9 - 3*x^8 - 4*x^7 - 3*x^6 - x^5 - x^3 - 2*x^2 - 2*x - 1,
-         x^14 - 2*x^13 + 2*x^12 - x^11 - x^9 + x^8 - x^6 + x^5 - x^3 + 2*x^2 - 2*x + 1,
-         x^14 - x^11 - x^9 - x^8 + x^6 + x^5 - x^3 + 1,
-         x^14 + 3*x^13 + 3*x^12 + x^11 - x^9 - 4*x^8 - 6*x^7 - 4*x^6 - x^5 - x^3 - 3*x^2 - 3*x - 1,
-         x^14 + x^11 - x^9 - x^8 - x^6 - x^5 - x^3 - 1,
-         x^14 + x^13 - x^12 - x^11 - x^9 - 2*x^8 + 2*x^6 + x^5 - x^3 - x^2 + x + 1,
-         x^14 - x^13 - x^12 + x^11 - x^9 + 2*x^7 - x^5 - x^3 + x^2 + x - 1,
-         x^14 - x^13 + x^12 - x^11 - x^9 + x^5 - x^3 + x^2 - x + 1,
-         x^14 + x^13 + x^12 + x^11 - x^9 - 2*x^8 - 2*x^7 - 2*x^6 - x^5 - x^3 - x^2 - x - 1,
-         x^14 - 2*x^13 + 2*x^12 - 2*x^11 + 2*x^10 - 2*x^9 + 2*x^8 - 2*x^7 + 2*x^5 - 2*x^4 + 2*x^2 - 2*x + 1,
-         x^14 - 2*x^6 - 2*x^3 - 1,
-         x^14 - 2*x^9 - 1,
-         x^14 + x^13 - x^9 - 2*x^8 - 2*x^7 + x^5 - x - 1,
-         x^14 - x^13 - x^9 + 2*x^6 - x^5 - x + 1,
-         x^14 - x^9 - x^8 - x^7 + x^6 - x^5 + 1,
-         x^14 + x^13 - x^11 - x^10 - x^7 - 2*x^6 + x^4 + x^3 - x - 1,
-         x^14 - x^13 - 2*x^9 + 2*x^8 - x + 1,
-         x^14 + x^13 - 2*x^9 - 2*x^8 - x - 1,
-         x^14 - 3*x^13 + 3*x^12 - x^11 - x^10 + 3*x^9 - 3*x^8 + 3*x^6 - 3*x^5 + x^4 - x^3 + 3*x^2 - 3*x + 1,
-         x^14 - x^13 + x^12 - x^11 - x^10 + x^9 - x^8 + x^6 - x^5 + x^4 - x^3 + x^2 - x + 1,
-         x^14 - x^13 - x^12 + x^11 - x^10 + x^9 + x^8 - 2*x^7 + x^6 + x^5 - x^4 - x^3 + x^2 + x - 1,
-         x^14 + 3*x^13 + 3*x^12 + x^11 - x^10 - 3*x^9 - 3*x^8 - 2*x^7 - 3*x^6 - 3*x^5 - x^4 - x^3 - 3*x^2 - 3*x - 1,
-         x^14 + x^13 - x^12 - x^11 - x^10 - x^9 + x^8 - x^6 + x^5 + x^4 - x^3 - x^2 + x + 1,
-         x^14 - 2*x^13 + 2*x^12 - x^11 - x^10 + 2*x^9 - 2*x^8 + 2*x^6 - 2*x^5 + x^4 - x^3 + 2*x^2 - 2*x + 1,
-         x^14 + x^11 - x^10 - 2*x^7 - x^4 - x^3 - 1,
-         x^14 + 2*x^13 + 2*x^12 + x^11 - x^10 - 2*x^9 - 2*x^8 - 2*x^7 - 2*x^6 - 2*x^5 - x^4 - x^3 - 2*x^2 - 2*x - 1,
-         x^14 + x^13 + x^12 + x^11 - x^10 - x^9 - x^8 - 2*x^7 - x^6 - x^5 - x^4 - x^3 - x^2 - x - 1,
-         x^14 - x^11 - x^10 + x^4 - x^3 + 1,
-         x^14 - 2*x^13 + x^12 - x^11 + 2*x^10 - 2*x^9 + 2*x^8 - 2*x^7 + 2*x^6 - 2*x^4 + x^3 + x^2 - 2*x + 1,
-         x^14 - x^12 - x^11 + 2*x^5 - x^3 + x^2 - 1,
-         x^14 + 3*x^13 + 5*x^12 + 5*x^11 + 3*x^10 - 3*x^8 - 6*x^7 - 9*x^6 - 10*x^5 - 9*x^4 - 7*x^3 - 5*x^2 - 3*x - 1,
-         x^14 + 4*x^13 + 7*x^12 + 7*x^11 + 4*x^10 - 4*x^8 - 8*x^7 - 12*x^6 - 14*x^5 - 12*x^4 - 9*x^3 - 7*x^2 - 4*x - 1,
-         x^14 + 2*x^13 + 3*x^12 + 3*x^11 + 2*x^10 - 2*x^8 - 4*x^7 - 6*x^6 - 6*x^5 - 6*x^4 - 5*x^3 - 3*x^2 - 2*x - 1,
-         x^14 + x^13 + x^12 + x^11 + x^10 - x^8 - 2*x^7 - 3*x^6 - 2*x^5 - 3*x^4 - 3*x^3 - x^2 - x - 1,
-         x^14 - x^13 + x^12 - x^11 + x^10 - 2*x^9 + x^8 - 2*x^7 + x^6 - x^4 + x^3 + x^2 - x + 1,
-         x^14 + x^13 + x^12 - x^11 - x^10 - 2*x^9 - x^8 - 2*x^7 - x^6 + x^4 + x^3 + x^2 + x + 1,
-         x^14 + x^12 - x^11 - 2*x^9 - 2*x^7 + x^3 + x^2 + 1,
-         x^14 + 2*x^13 + x^12 - x^11 - 2*x^10 - 2*x^9 - 2*x^8 - 2*x^7 - 2*x^6 + 2*x^4 + x^3 + x^2 + 2*x + 1,
-         x^14 - x^13 - x^12 + x^11 - x^3 + x^2 - x + 1,
-         x^14 + x^13 - x^12 - x^11 - x^3 - x^2 - x - 1,
-         x^14 + 2*x^13 + x^12 - 2*x^9 - 4*x^8 - 2*x^7 - x^2 - 2*x - 1,
-         x^14 - 2*x^13 + x^12 - 2*x^9 + 4*x^8 - 2*x^7 - x^2 + 2*x - 1,
-         x^14 + x^13 + x^12 - 2*x^9 - 2*x^8 - 2*x^7 - x^2 - x - 1,
-         x^14 + x^12 - 2*x^9 - 2*x^7 - x^2 - 1,
-         x^14 - x^13 + x^12 - 2*x^9 + 2*x^8 - 2*x^7 - x^2 + x - 1,
-         x^14 - x^12 - 2*x^9 + 2*x^7 - x^2 + 1,
-         x^14 - x^13 + x^12 - x^11 - x^7 + x^3 - x^2 + x - 1,
-         x^14 - x^10 - x^9 + x^5 - x^4 - 1,
-         x^14 - x^12 - x^11 + x^9 + x^8 - 2*x^7 - x^6 + x^5 + 2*x^4 - x^3 - x^2 + 1,
-         x^14 + 2*x^13 + x^12 - x^11 - 2*x^10 - x^9 + x^8 - 3*x^6 - 3*x^5 + x^3 - x^2 - 2*x - 1,
-         x^14 + x^13 + x^12 - 2*x^10 - 2*x^9 - 2*x^8 - x^7 + x^2 + x + 1,
-         x^14 - x^13 + x^12 - x^11 - x^8 + x^7 - x^6 + x^3 - x^2 + x - 1,
-         x^14 - 3*x^13 + 3*x^12 - x^11 - 2*x^9 + 6*x^8 - 6*x^7 + 2*x^6 - x^3 + 3*x^2 - 3*x + 1,
-         x^14 + x^13 - x^12 - x^11 - 2*x^9 - 2*x^8 + 2*x^7 + 2*x^6 - x^3 - x^2 + x + 1,
-         x^14 - x^13 + x^12 - x^11 - 2*x^9 + 2*x^8 - 2*x^7 + 2*x^6 - x^3 + x^2 - x + 1,
-         x^14 - 2*x^13 + 2*x^12 - x^11 - 2*x^9 + 4*x^8 - 4*x^7 + 2*x^6 - x^3 + 2*x^2 - 2*x + 1,
-         x^14 + x^13 + x^12 + x^11 - 2*x^9 - 2*x^8 - 2*x^7 - 2*x^6 - x^3 - x^2 - x - 1,
-         x^14 - x^11 - 2*x^9 + 2*x^6 - x^3 + 1,
-         x^14 + x^11 - 2*x^9 - 2*x^6 - x^3 - 1,
-         x^14 + 2*x^13 + 2*x^12 + x^11 - 2*x^9 - 4*x^8 - 4*x^7 - 2*x^6 - x^3 - 2*x^2 - 2*x - 1,
-         x^14 + 3*x^13 + 3*x^12 + x^11 - 2*x^9 - 6*x^8 - 6*x^7 - 2*x^6 - x^3 - 3*x^2 - 3*x - 1,
-         x^14 - x^13 - x^12 + x^11 - 2*x^9 + 2*x^8 + 2*x^7 - 2*x^6 - x^3 + x^2 + x - 1,
-         x^14 - x^8 - x^7 - x^6 - 1]
-}
-# deg_8_short = [
-#     x^8 - x^7 - x^5 + x^3 - x + 1,
-#     x^8 - x^7 - x^6 + x^5 - x^3 + x^2 - x + 1,
-#     x^8 - x^5 - x^4 - x^3 - 1
-# ]
-
-
 
 def partitions_compact(n):
+    """
+    Return the list of partitions of an integer in a compact form.
+
+    Compact means that instead of describing the partition of 4 as (1, 1, 1, 1),
+    it is written as (1, 4), meaning that 1 occurs with multiplicity 4.
+
+    INPUT:
+
+    - ``n`` - a positive integer
+
+    EXAMPLE:
+
+        sage: partitions_compact(4)
+        [[(4, 1)], [(1, 1), (3, 1)], [(2, 2)], [(1, 2), (2, 1)], [(1, 4)]]
+
+    """
     temp = Partitions(n).list()
     final = []
     for partition in temp:
@@ -421,98 +32,114 @@ def partitions_compact(n):
 
 def strata(genus):
     """
-    Return the possible strata for the genus g orientable surface that lift
-    from a nonorientable surface
+    Return the possible strata for the genus g orientable surface that is a lift
+    from a nonorientable surface by an unbranched cover.
 
-    sage: strata(6)
+    The strata are partitions of 4``genus``-4, with 2 added to each element of the partition (the number of prongs is 2 plus the order of the zero). 
+    
+    The partitions have to have certain symmetries: every number should happen an even number of times, since the involution deck transformation creates a pairing of the singularities.
 
-    [[(12, 2)],
-     [(4, 2), (10, 2)],
-     [(6, 2), (8, 2)],
-     [(4, 4), (8, 2)],
-     [(4, 2), (6, 4)],
-     [(4, 6), (6, 2)],
-     [(4, 10)]]
+    INPUT: 
+    
+    - ``genus`` -- the genus of the surface.
+
+    EXAMPLE:
+
+        sage: strata(5)
+        [[(10, 2)], [(4, 2), (8, 2)], [(6, 4)], [(4, 4), (6, 2)], [(4, 8)]]
+
     """
     return [[(2*item[0]+2,2*item[1]) for item in partition] for partition in partitions_compact(genus-1)]
     temp = Partitions(genus-1).list()
 
-# def new_orbit_patterns(set_size):
-#     """
-#     Return a list whose elements describe the possible orbits of
-#     ``set_size`` singularities of the same degree. Every element of the
-#     list is also a list and it describes one scenario. Elements of each list
-#     are tuples (``orbit_length``, ``num_orbits``). Every orbit length has to be
-#     even unless it is one. The number of orbits of length 1 has to be even, so
-#     in that case we return (1, ``num_orbits``/2).
-#     """
-#     assert(set_size % 2) == 0
-#     half_mult = set_size // 2
-#     temp = [[(2*k,mult) for (k,mult) in partition]
-#             for partition in partitions_compact(half_mult)]
-#     # return temp
-#     final = []
-#     for partition in temp:
-#         final.append(partition)
-#         if partition[0][0] != 2:
-#             continue
-#         for i in range(partition[0][1]):
-#             start = [(1,1*i+1)]  # the true multiplicity is double, but this is
-#             # convenient, since these come in pairs
-#             if partition[0][1]-i-1 > 0:
-#                 start.append((2,partition[0][1]-i-1))
-#             final.append(start + partition[1:])
-#     return final
-
 
 def is_symmetric(partition):
+    """
+    Decide if a partition is symmetric.
+
+    Symmetric means that every element of the partition is either even or if odd, it occurs an even number of times.
+
+    Lifts of orbits have to satisfy these symmetries, since an orbit of odd length lifts to one orbit of twice the length. The lift of an orbit of even length can have one one or two components, but in either case, the orbit lengths are even.
+
+    INPUT:
+
+    - ``partition`` - a partition (a list) with elements in the compact form (number, multiplicity)
+
+    EXAMPLE:
+
+        sage: load('lefschetz.sage')
+        sage: is_symmetric([(3, 4), (2,3)])
+        True
+        sage: is_symmetric([(3, 4), (3,3)])
+        False
+
+    """
     return all(orbit%2 == 0 or mult%2 ==0 for (orbit, mult) in partition)
 
 def orbit_patterns(set_size):
     """
-    sage: orbit_patterns(4)
-    [[(4, 1)], [(2, 2)], [(1, 2), (2, 1)], [(1, 4)]]
-    sage: orbit_patterns(6)
-    [[(6, 1)],
-    [(2, 1), (4, 1)],
-    [(1, 2), (4, 1)],
-    [(3, 2)],
-    [(2, 3)],
-    [(1, 2), (2, 2)],
-    [(1, 4), (2, 1)],
-    [(1, 6)]]
+    Return the possible orbit pattern on a set of given size.
+
+    The orbit pattern is simply a partition which is symmetric in the sense of the method ``is_symmetric``.
+
+    INPUT:
+
+    - ``set_size`` -- a positive integer
+
+    EXAMPLE:
+
+        sage: orbit_patterns(4)
+        [[(4, 1)], [(2, 2)], [(1, 2), (2, 1)], [(1, 4)]]
+        sage: orbit_patterns(6)
+        [[(6, 1)],
+        [(2, 1), (4, 1)],
+        [(1, 2), (4, 1)],
+        [(3, 2)],
+        [(2, 3)],
+        [(1, 2), (2, 2)],
+        [(1, 4), (2, 1)],
+        [(1, 6)]]
+
     """
     assert(set_size % 2) == 0
     return filter(is_symmetric, partitions_compact(set_size))
 
 def append_options(list_with_mult, options):
     """
+    Takes a partition an decorate its elements with certain markers in all possible ways.
+
     INPUT:
+
     - ``list_with_mult`` -- list of tuples (data, multiplicity)
     - ``options`` -- list of options to append on the pieces of data
 
     OUTPUT:
+
     A list of possible appendings. Each appending is a list, containing tuples
     (data, multiplicity, option), counting how many pieces of data receives a
     specific option.
 
     EXAMPLE:
 
-    sage: append_options([(10,1), (13,3)],[1,5])
-    [[(10, 1, 1), (13, 3, 1)],
-     [(10, 1, 1), (13, 2, 1), (13, 1, 5)],
-     [(10, 1, 1), (13, 1, 1), (13, 2, 5)],
-     [(10, 1, 1), (13, 3, 5)],
-     [(10, 1, 5), (13, 3, 1)],
-     [(10, 1, 5), (13, 2, 1), (13, 1, 5)],
-     [(10, 1, 5), (13, 1, 1), (13, 2, 5)],
-     [(10, 1, 5), (13, 3, 5)]]
+        sage: append_options([(10,1), (13,3)],[1,5])
+        [[(10, 1, 1), (13, 3, 1)],
+        [(10, 1, 1), (13, 2, 1), (13, 1, 5)],
+        [(10, 1, 1), (13, 1, 1), (13, 2, 5)],
+        [(10, 1, 1), (13, 3, 5)],
+        [(10, 1, 5), (13, 3, 1)],
+        [(10, 1, 5), (13, 2, 1), (13, 1, 5)],
+        [(10, 1, 5), (13, 1, 1), (13, 2, 5)],
+        [(10, 1, 5), (13, 3, 5)]]
+
     """
     result = []
     append_options_recursive(0, list_with_mult, options, [], result)
     return result
 
 def append_options_recursive(current_idx, list_with_mult, options, list_so_far, result):
+    """
+    The recursive method doing the job of ``append_options``.
+    """
     if current_idx == len(list_with_mult):
         result.append(list_so_far)
         return
@@ -537,27 +164,32 @@ Orbit = namedtuple("Orbit", "num_prongs orbit_length num_orbits order_after_firs
 
 def orbit_combinations_fixed_num_prongs(num_prongs, multiplicity):
     """
+    Return the list of possible orbit combinations of a number of singularities with specified number of prongs.
 
-    OUTPUT:
+    INPUT:
 
-    list of list of Orbits.
+    - ``num_prongs`` -- the number of prongs of a singularity
+    - ``multiplicity`` -- the multiplicity of singularities with said number of prongs
 
     EXAMPLE:
 
-    sage:     sage: orbit_combinations_fixed_num_prongs(6, 2)
+    If we have two 6-pronged singularities, either both are fixed or they are interchanged. In each of the cases, on the first return, either all prongs are fixed, or the action of an order 3 rotation (order 6 and 2 are not possible, since the unstable foliation goes to the unstable foliation):
 
-    [[Orbit(num_prongs=6, orbit_length=2, num_orbits=1, order_after_first_return=1)],
-     [Orbit(num_prongs=6, orbit_length=2, num_orbits=1, order_after_first_return=3)],
-     [Orbit(num_prongs=6, orbit_length=1, num_orbits=2, order_after_first_return=1)],
-     [Orbit(num_prongs=6, orbit_length=1, num_orbits=2, order_after_first_return=3)]]
+        sage: orbit_combinations_fixed_num_prongs(6, 2)
 
-    sage: orbit_combinations_fixed_num_prongs(2, 4)
-    [[Orbit(num_prongs=2, orbit_length=4, num_orbits=1, order_after_first_return=1)],
-     [Orbit(num_prongs=2, orbit_length=2, num_orbits=2, order_after_first_return=1)],
-     [Orbit(num_prongs=2, orbit_length=1, num_orbits=2, order_after_first_return=1),
-      Orbit(num_prongs=2, orbit_length=2, num_orbits=1, order_after_first_return=1)],
-     [Orbit(num_prongs=2, orbit_length=1, num_orbits=4,
-        order_after_first_return=1)]]
+        [[Orbit(num_prongs=6, orbit_length=2, num_orbits=1, order_after_first_return=1)],
+        [Orbit(num_prongs=6, orbit_length=2, num_orbits=1, order_after_first_return=3)],
+        [Orbit(num_prongs=6, orbit_length=1, num_orbits=2, order_after_first_return=1)],
+        [Orbit(num_prongs=6, orbit_length=1, num_orbits=2, order_after_first_return=3)]]
+
+        sage: orbit_combinations_fixed_num_prongs(2, 4)
+
+        [[Orbit(num_prongs=2, orbit_length=4, num_orbits=1, order_after_first_return=1)],
+        [Orbit(num_prongs=2, orbit_length=2, num_orbits=2, order_after_first_return=1)],
+        [Orbit(num_prongs=2, orbit_length=1, num_orbits=2, order_after_first_return=1),
+        Orbit(num_prongs=2, orbit_length=2, num_orbits=1, order_after_first_return=1)],
+        [Orbit(num_prongs=2, orbit_length=1, num_orbits=4,
+            order_after_first_return=1)]]
 
     """
     result = []
@@ -568,6 +200,51 @@ def orbit_combinations_fixed_num_prongs(num_prongs, multiplicity):
 
 
 def orbit_combinations_in_stratum(stratum):
+    """
+    Return a generator to all the possible orbit combinations in a stratum. (How many orbits are and of what length and what the order of the first return map is for each orbit.)
+
+    INPUT:
+
+    - ``stratum`` -- a list of tuples (num_prongs, multiplicity), encoding a stratum.
+
+    EXAMPLE:
+
+        sage: list(orbit_combinations_in_stratum([(4, 2), (6, 2)]))
+
+        [[Orbit(num_prongs=4, orbit_length=2, num_orbits=1, order_after_first_return=1),
+        Orbit(num_prongs=6, orbit_length=2, num_orbits=1, order_after_first_return=1)],
+        [Orbit(num_prongs=4, orbit_length=2, num_orbits=1, order_after_first_return=1),
+        Orbit(num_prongs=6, orbit_length=2, num_orbits=1, order_after_first_return=3)],
+        [Orbit(num_prongs=4, orbit_length=2, num_orbits=1, order_after_first_return=1),
+        Orbit(num_prongs=6, orbit_length=1, num_orbits=2, order_after_first_return=1)],
+        [Orbit(num_prongs=4, orbit_length=2, num_orbits=1, order_after_first_return=1),
+        Orbit(num_prongs=6, orbit_length=1, num_orbits=2, order_after_first_return=3)],
+        [Orbit(num_prongs=4, orbit_length=2, num_orbits=1, order_after_first_return=2),
+        Orbit(num_prongs=6, orbit_length=2, num_orbits=1, order_after_first_return=1)],
+        [Orbit(num_prongs=4, orbit_length=2, num_orbits=1, order_after_first_return=2),
+        Orbit(num_prongs=6, orbit_length=2, num_orbits=1, order_after_first_return=3)],
+        [Orbit(num_prongs=4, orbit_length=2, num_orbits=1, order_after_first_return=2),
+        Orbit(num_prongs=6, orbit_length=1, num_orbits=2, order_after_first_return=1)],
+        [Orbit(num_prongs=4, orbit_length=2, num_orbits=1, order_after_first_return=2),
+        Orbit(num_prongs=6, orbit_length=1, num_orbits=2, order_after_first_return=3)],
+        [Orbit(num_prongs=4, orbit_length=1, num_orbits=2, order_after_first_return=1),
+        Orbit(num_prongs=6, orbit_length=2, num_orbits=1, order_after_first_return=1)],
+        [Orbit(num_prongs=4, orbit_length=1, num_orbits=2, order_after_first_return=1),
+        Orbit(num_prongs=6, orbit_length=2, num_orbits=1, order_after_first_return=3)],
+        [Orbit(num_prongs=4, orbit_length=1, num_orbits=2, order_after_first_return=1),
+        Orbit(num_prongs=6, orbit_length=1, num_orbits=2, order_after_first_return=1)],
+        [Orbit(num_prongs=4, orbit_length=1, num_orbits=2, order_after_first_return=1),
+        Orbit(num_prongs=6, orbit_length=1, num_orbits=2, order_after_first_return=3)],
+        [Orbit(num_prongs=4, orbit_length=1, num_orbits=2, order_after_first_return=2),
+        Orbit(num_prongs=6, orbit_length=2, num_orbits=1, order_after_first_return=1)],
+        [Orbit(num_prongs=4, orbit_length=1, num_orbits=2, order_after_first_return=2),
+        Orbit(num_prongs=6, orbit_length=2, num_orbits=1, order_after_first_return=3)],
+        [Orbit(num_prongs=4, orbit_length=1, num_orbits=2, order_after_first_return=2),
+        Orbit(num_prongs=6, orbit_length=1, num_orbits=2, order_after_first_return=1)],
+        [Orbit(num_prongs=4, orbit_length=1, num_orbits=2, order_after_first_return=2),
+        Orbit(num_prongs=6, orbit_length=1, num_orbits=2, order_after_first_return=3)]]
+
+    """
     for item in itertools.product(*[orbit_combinations_fixed_num_prongs(*x) for x in
     stratum]):
         yield list(itertools.chain(*item))
@@ -578,6 +255,7 @@ def lefschetz_contribution(orbit, power, lambda_pos=True):
 
     - ``orbit`` -- an Orbit
     - ``power`` -- the power of the mapping class to be considered
+    - ``lambda_pos`` (default=True) -- whether the stretch factor is positive or negative. Negative means that both (transversely orientable) invariant foliations are reversed.
 
     TESTS:
 
@@ -609,27 +287,39 @@ def lefschetz_contribution(orbit, power, lambda_pos=True):
         result = orbit.orbit_length
     return orbit.num_orbits * result
 
-# def total_lefschetz_contribution(num_prongs,orbit_combinations_fixed_num_prongs,k):
-#     """
-#     EXAMPLE:
-
-#     sage: total_lefschetz_contribution([4,6], ([(2, 1, 1)], [(2, 1, 1)]), 1)
-
-#     """
-#     contribution = 0
-#     for i in range(len(num_prongs)):
-#         ops = orbit_combinations_fixed_num_prongs[i]
-#         for op in ops:
-#             contribution += op[1] * lefschetz_contribution(num_prongs[i], op[0],
-#                                                            op[2], k)
-#     return contribution
-
-
 
 def max_num_singularities(genus):
+    """
+    Return the maximum number of singularities on the orientable surface with specified genus.
+
+    EXAMPLE:
+
+        sage: load('lefschetz.sage')
+        sage: max_num_singularities(3)
+        4
+
+    """
     return 2*genus-2
 
 def lefschetz_numbers(poly, max_power=10, is_orientable=True):
+    """
+    Compute the Lefschetz numbers of powers of a homeomorphism of a surface.
+
+    INPUT:
+
+    - ``poly`` -- the characteristic polynomial of the action on homology
+    - ``max_power`` -- the Lefschetz numbers are computed from power 1 to ``max_power`` and organized into a list
+    - ``is_orientable`` -- whether the surface is orientable
+
+    EXAMPLE:
+
+        sage: load('lefschetz.sage')
+        sage: lefschetz_numbers(x^4-x^3-x^2-x+1)
+        [1, -1, -5, -5, -14, -25, -41, -77, -131, -226]
+        sage: lefschetz_numbers(x^3-x^2-x-1,is_orientable=False)
+        [0, -2, -6, -10, -20, -38, -70, -130, -240, -442]
+
+    """
     mat = companion_matrix(poly)
     base = 2 if is_orientable else 1
     return [base-(mat**k).trace() for k in range(1, max_power+1)]
@@ -637,6 +327,12 @@ def lefschetz_numbers(poly, max_power=10, is_orientable=True):
 def reciprocalize(poly):
     """
     Multiply a polynomial by its reciprocal to make it reciprocal.
+
+    EXAMPLE:
+
+        sage: reciprocalize(x^3-x^2-x-1)
+        x^6 - x^4 - 4*x^3 - x^2 + 1
+
     """
     p = poly * poly.reverse()
     return p * sign(p[0])
@@ -707,10 +403,23 @@ def create_summary(recip_poly, orbits, max_power,
     return summary_array
 
 def get_compatible_strata(poly, orbit_combinations, max_power=20):
+    """
+    Decide which orbit combinations are compatible with a polynomial.
+
+    INPUT:
+
+    - ``poly`` -- a polynomial, the charpoly of the action on homology on a nonorientable surface. So this is polynomials is not reciprocal.
+    - ``orbit_combinations`` -- a list of orbit combinations to be checked. The format is the same as the output of ``orbit_combinations_in_stratum``.
+    - ``max_power`` -- the maximum power until which consistency is checked. 
+
+    OUTPUT:
+
+    The list of 2-element lists of the form [compatible orbit combination, True/False], where the second element is True is lambda is positive and False otherwise.
+
+    """
     rec_poly = reciprocalize(poly)
     candidate_strata = []
 
-    # testing all strata
     print "-------------------------------------"
     print "Testing ", poly
 
@@ -718,13 +427,8 @@ def get_compatible_strata(poly, orbit_combinations, max_power=20):
     max_lefschetz = max_num_singularities(poly.degree())
     for k in lef_nums:
         if k > max_lefschetz:
-            # print k, "is too big Lefschetz number:"
-            # print poly
-            # break
             print "-------------------------------------"
             return []
-    # print poly, poly.factor()
-
 
     for orbits in orbit_combinations:
         for lambda_pos in [True, False]:
@@ -736,50 +440,79 @@ def get_compatible_strata(poly, orbit_combinations, max_power=20):
                 print matrix(summary)
             except RuntimeError as ex:
                 continue
-                # print str(ex)
             candidate_strata.append([orbits, lambda_pos])
-    # print lef_nums
     print "-------------------------------------"
     return candidate_strata
-# for poly in deg_8_candidates:
-#     test(poly)
-# test(deg_8_candidates[0])
+
 
 def print_summary(poly, orbits, lambda_pos):
+    """
+    Print a polynomial, orbit patterns and whether the stretch factor is positive or negative.
+    """
     print "Polynomial:", poly
-    # print "Stratum:", stratum
-    # print "Number of prongs:", num_prongs
     print "Orbit patterns:", orbits
     print "The stretch factor is: ", "POSITIVE" if lambda_pos else "NEGATIVE"
 
 
 def get_possible_polynomials(degree, max_power=50):
-    result = {}
-    for poly in poly_candidates[degree]:
+    """
+    Takes the polynomials in data.py and runs the Lefschetz tests on them.
+
+    Since the Lefschetz tests currently work only for nonorientable surfaces, this method as well.
+
+    INPUT:
+
+    - ``degree`` -- the degree of the polynomials
+    - ``max_power`` -- the maximum power until which the consistency of Lefschetz numbers are tested
+
+    OUTPUT:
+
+    a dictionary whose keys are polynomials and the values are lists of possible orbit patterns
+
+    EXAMPLE:
+
+        sage: from lefschetz import get_possible_polynomials
+        sage: get_possible_polynomials(5)
+        -------------------------------------
+        Testing  x^5 - x^3 - x^2 - 1
+        Polynomial: (x^5 - x^3 - x^2 - 1) * (x^5 + x^3 + x^2 - 1)
+        Orbit patterns: [Orbit(num_prongs=10, orbit_length=1, num_orbits=2, order_after_first_return=5)]
+        The stretch factor is:  POSITIVE
+        4 x 50 dense matrix over Integer Ring
+        -------------------------------------
+
+        {x^5 - x^3 - x^2 - 1: [[[Orbit(num_prongs=10, orbit_length=1, num_orbits=2, order_after_first_return=5)],
+        True]]}
+        
+
+        sage: get_possible_polynomials(10)
+        ...
+        {x^10 - x^9 - x^6 + x^4 - x + 1: [[[Orbit(num_prongs=4, orbit_length=18, num_orbits=1, order_after_first_return=1)], True],
+        [[Orbit(num_prongs=4, orbit_length=18, num_orbits=1, order_after_first_return=2)], True],
+        [[Orbit(num_prongs=4, orbit_length=9, num_orbits=2, order_after_first_return=2)], True]],
+        x^10 - x^9 + x^7 - x^6 - x^5 + x^4 - x^3 + x - 1: [[[Orbit(num_prongs=8, orbit_length=3, num_orbits=2, order_after_first_return=4)], True]]}
+
+    """
+    res = {}
+    
+    for (poly, factor) in results['nonor'][degree]:
+        poly = ZZ[x](poly)
         orbit_combinations = [orbits for stratum in strata(poly.degree())
                               for orbits in orbit_combinations_in_stratum(stratum)]
         candidate_strata = get_compatible_strata(poly, orbit_combinations,
                                                  max_power)
         if len(candidate_strata) > 0:
-            result[poly] = candidate_strata
-    return result
+            res[poly] = candidate_strata
+    return res
 
 
-# the result fo get_possible_polynomials(8) is:
-# candidates_8_old ={x^8 - x^7 - x^6 + x^5 - x^3 + x^2 - x + 1: [[[4], [(14, 1, 1)], True],
-#                                                            [[4], [(14, 1, 2)], True],
-#                                                            [[4], [(7, 2, 2)], True]],
-#                x^8 - x^7 - x^5 + x^3 - x + 1: [[[4], [(14, 1, 1)], True],
-#                                                [[4], [(14, 1, 2)], True],
-#                                                [[4], [(10, 1, 2), (4, 1, 1)], True],
-#                                                [[4], [(10, 1, 2), (4, 1, 2)], True],
-#                                                [[4], [(10, 1, 2), (2, 2, 1)], True],
-#                                                [[4], [(10, 1, 2), (2, 1, 1), (2, 1, 2)], True],
-#                                                [[4], [(10, 1, 2), (2, 2, 2)], True],
-#                                                [[4], [(7, 2, 2)], True]],
-#                x^8 - x^5 - x^4 - x^3 - 1: [[[16], [(1, 2, 8)], True]]}
+# -------------------------------------------------------------------------
+# The polynomials and possible orbit patterns AFTER the Lefschetz tests. 
+# -------------------------------------------------------------------------
 
-candidates_8 = {x^8 - x^7 - x^6 + x^5 - x^3 + x^2 - x + 1:
+
+polynomials_and_orbits = {
+    8: {x^8 - x^7 - x^6 + x^5 - x^3 + x^2 - x + 1:
                 [[[Orbit(num_prongs=4, orbit_length=14, num_orbits=1, order_after_first_return=1)],
                   True],
                  [[Orbit(num_prongs=4, orbit_length=14, num_orbits=1, order_after_first_return=2)],
@@ -795,10 +528,8 @@ candidates_8 = {x^8 - x^7 - x^6 + x^5 - x^3 + x^2 - x + 1:
                   True]],
                 x^8 - x^5 - x^4 - x^3 - 1:
                 [[[Orbit(num_prongs=16, orbit_length=1, num_orbits=2, order_after_first_return=8)],
-                  True]]}
-
-
-candidates_10 = {x^10 - x^9 - x^6 + x^4 - x + 1:
+                  True]]},
+    10: {x^10 - x^9 - x^6 + x^4 - x + 1:
                   [[[Orbit(num_prongs=4, orbit_length=18, num_orbits=1, order_after_first_return=1)],
                    True],
                   [[Orbit(num_prongs=4, orbit_length=18, num_orbits=1, order_after_first_return=2)],
@@ -807,9 +538,9 @@ candidates_10 = {x^10 - x^9 - x^6 + x^4 - x + 1:
                    True]],
                  x^10 - x^9 + x^7 - x^6 - x^5 + x^4 - x^3 + x - 1:
                  [[[Orbit(num_prongs=8, orbit_length=3, num_orbits=2, order_after_first_return=4)],
-                   True]]}
-
-candidates_12 = {
+                   True]]},
+    
+    12: {
     x^12 - 3*x^11 + 2*x^10 + 2*x^9 - 3*x^8 + x^7 - x^5 + 3*x^4 - 4*x^3 + 4*x^2
     - 3*x + 1:
     [[[Orbit(num_prongs=4, orbit_length=22, num_orbits=1, order_after_first_return=1)],
@@ -982,25 +713,36 @@ candidates_12 = {
     x^12 - x^7 - x^6 - x^5 - 1:
     [[[Orbit(num_prongs=24, orbit_length=1, num_orbits=2, order_after_first_return=12)],
       True]]}
-
-# {x^10 - x^9 - x^6 + x^4 - x + 1: [[[8], [(6, 1, 4)], True],
-#                                                   [[4], [(18, 1, 1)], True],
-#                                                   [[4], [(18, 1, 2)], True],
-#                                                   [[4], [(16, 1, 2), (2, 1, 1)], True],
-#                                                   [[4], [(16, 1, 2), (2, 1, 2)], True],
-#                                                   [[4], [(16, 1, 2), (1, 2, 1)], True],
-#                                                   [[4], [(16, 1, 2), (1, 2, 2)], True],
-#                                                   [[4], [(12, 1, 2), (6, 1, 1)], True],
-#                                                   [[4], [(12, 1, 2), (6, 1, 2)], True],
-#                                                   [[4], [(9, 2, 2)], True]],
-#                  x^10 - x^9 + x^7 - x^6 - x^5 + x^4 - x^3 + x - 1: [[[8], [(3, 2, 4)], True]]}
+}
 
 
+def double_check_results(degree, max_power=100, debug=False, 
+                        print_tables=False):
+    """
+    Tests that the polynomials and orbit patterns in ``polynomials_and_orbits``
+    are indeed consistent.
 
-def double_check_candidates(candidates, max_power=100, debug=False):
-    for poly in candidates.keys():
+    INPUT:
+
+    - ``degree`` -- the degree of the polynomials
+    - ``max_power`` -- the maximum power until which the consistency of Lefschetz numbers are tested
+    - ``debug`` -- if True, info useful for debugging is printed out
+    - ``print_tables`` -- if True, the consistent Lefschetz tables are printed out
+
+    EXAMPLE:
+
+    sage: load('lefschetz.sage')
+    sage: double_check_results(10)
+    ...
+    -------------------------------------------
+    x^10 - x^9 - x^6 + x^4 - x + 1 [[Orbit(num_prongs=4, orbit_length=9, num_orbits=2, order_after_first_return=2)], True] SEEMS OKAY.
+    -------------------------------------------
+
+    """
+    poly_dict = polynomials_and_orbits[degree]
+    for poly in poly_dict.keys():
         rec_poly = reciprocalize(poly)
-        for data in candidates_8[poly]:
+        for data in poly_dict[poly]:
             orbits, lambda_pos = data
             try:
                 summary = create_summary(rec_poly, orbits, max_power,
@@ -1008,31 +750,10 @@ def double_check_candidates(candidates, max_power=100, debug=False):
                 print "-------------------------------------------"
                 print poly, data, "SEEMS OKAY."
                 print "-------------------------------------------"
-                print_summary(rec_poly, orbits, lambda_pos)
-                print summary
+                if print_tables:
+                    print_summary(rec_poly, orbits, lambda_pos)
             except RuntimeError as ex:
                 print "-------------------------------------------"
                 print poly, data, "HAS FAILED!!!!!!!"
                 print "-------------------------------------------"
 
-# double_check_candidates(candidates_8, 20)
-
-# def double_check_candidate(candidates, max_power=100):
-#     result = {}
-#     for poly in poly_candidates[degree]:
-#         candidate_strata = get_compatible_strata(poly)
-#         if len(candidate_strata) > 0:
-#             result[poly] = candidate_strata
-
-#                 try:
-#                     summary = create_summary(rec_poly, num_prongs, orbits, max_power, lambda_pos)
-#                 except RuntimeError as ex:
-#                     continue
-#                     # print str(ex)
-#                 print "Stratum:", stratum
-#                 print "Number of prongs:", num_prongs
-#                 print "Orbit patterns:", orbits
-#                 print "The stretch factor is: ", "POSITIVE" if lambda_pos else "NEGATIVE"
-#                 print summary
-
-#     return result
