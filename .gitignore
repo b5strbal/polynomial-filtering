@@ -3,6 +3,6 @@
 *~
 *.c
 \#*\#
-data.py
 *.txt
 .cache/v/cache/lastfailed
+data.sage.py
