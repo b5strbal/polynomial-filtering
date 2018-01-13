@@ -1,4 +1,6 @@
 import numpy as np
+from helpers import is_good_poly, construct_poly, get_PF_root
+from sage.all import QQbar, CDF
 cdef int cUPPER = 0
 cdef int cLOWER = 1
 cdef long [:] backward_traces = np.zeros(30, dtype=np.int)
@@ -25,6 +27,7 @@ cdef do_traces_pass_backwards(long[:] coeffs, long[:] trace_abs_bounds):
 
 
 cpdef find_polynomials_recursive(int num_coeffs,
+                                double largest_root_bound,
                                 int is_orientable,
                                 int is_orientation_rev,
                                 long[:] coeffs,
@@ -51,28 +54,18 @@ cpdef find_polynomials_recursive(int num_coeffs,
 
     """
     cdef int j
-    if next_idx == num_coeffs -1:
-        if not is_orientable:
-            # Choosing the constant coeff to be +1 or -1 if the surface is nonorientable.
-            for j in range(-1,2,2):  # [-1,1],making sure it compiles to fast C code
-                coeffs[next_idx] = j
-                find_polynomials_recursive(num_coeffs,
-                                        is_orientable, 
-                                        is_orientation_rev,
-                                        coeffs, traces,
-                                        trace_bounds, next_idx+1,
-                                        good_coeffs, first_trace)
-            return
-        elif is_orientation_rev and num_coeffs % 2 == 0:
-            # If the map is orientation reversing and the degree is divisible by four, then the middle coefficient has to vanish.abs
-            coeffs[next_idx] = 0
+    if next_idx == num_coeffs -1 and not is_orientable:
+        # Choosing the constant coeff to be +1 or -1 if the surface is nonorientable.
+        for j in range(-1,2,2):  # [-1,1],making sure it compiles to fast C code
+            coeffs[next_idx] = j
             find_polynomials_recursive(num_coeffs,
+                                    largest_root_bound,
                                     is_orientable, 
                                     is_orientation_rev,
                                     coeffs, traces,
                                     trace_bounds, next_idx+1,
                                     good_coeffs, first_trace)
-            return
+        return
 
     # There are no more coefficients to determine.
     if next_idx == num_coeffs:
@@ -80,7 +73,13 @@ cpdef find_polynomials_recursive(int num_coeffs,
         if not is_orientable and \
            not do_traces_pass_backwards(coeffs, trace_bounds[cUPPER]):
             return
-        good_coeffs.append(list(coeffs))
+        coeffs_list = list(coeffs)
+        poly = construct_poly(coeffs, is_orientable, is_orientation_rev)
+        if is_good_poly(poly, largest_root_bound, is_orientable, CDF):
+            if is_good_poly(poly, largest_root_bound, is_orientable, QQbar):
+                pf_root = get_PF_root(poly, QQbar, is_orientable)
+                good_coeffs.append((poly, pf_root))
+        # good_coeffs.append(list(coeffs))
         return
 
     cdef long trace_upper_bound = trace_bounds[cUPPER, next_idx]
@@ -121,6 +120,7 @@ cpdef find_polynomials_recursive(int num_coeffs,
                 pass
             else:
                 find_polynomials_recursive(num_coeffs,
+                                            largest_root_bound,
                                            is_orientable, 
                                            is_orientation_rev,
                                            coeffs, traces,

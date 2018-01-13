@@ -1,4 +1,5 @@
 cpdef find_polynomials_recursive(int,
+                                double,
                                 int ,
                                 int ,
                                 long[:] ,
