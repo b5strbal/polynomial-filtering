@@ -33,7 +33,7 @@ def name_to_bool(or_type_name):
         raise ValueError("The type should be 'reversing', 'preserving' or 'nonor'.")
 
 
-def timed_test(degree, largest_root_bound, is_orientable, 
+def timed_test(degree, largest_root_bound, is_orientable,
                 is_orientation_rev, first_trace=None):
     """
     Run and time the polynomial filtering for some surface, and prints the results to a file and to the screen as well.
@@ -97,10 +97,10 @@ def timed_test(degree, largest_root_bound, is_orientable,
     myfile.close()
 
 
-def timed_test_by_first_trace(degree, largest_root_bound, is_orientable, 
+def timed_test_by_first_trace(degree, largest_root_bound, is_orientable,
                 is_orientation_rev):
     """
-    Starts several instances of the demo.py script, each testing a different value for the first trace. 
+    Starts several instances of the demo.py script, each testing a different value for the first trace.
 
     The results are printed on the screen and to files also.
 
@@ -137,4 +137,7 @@ def timed_test_by_first_trace(degree, largest_root_bound, is_orientable,
     import os
     traces = sorted(range(trace_bounds[0], trace_bounds[1] + 1), key = lambda x: abs(x))
     for i in traces:
-        os.system('sage demo.py ' + or_type_name(is_orientable, is_orientation_rev) + " " + str(degree) + ' --first_trace ' + str(i) + ' &')
+        os.system('sage demo.py ' + or_type_name(is_orientable,
+                                                 is_orientation_rev) +
+                  " " + str(degree) + ' --largest_root_bound ' +
+                  str(largest_root_bound) + ' --first_trace ' + str(i) + ' &')
