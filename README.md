@@ -8,14 +8,43 @@ There is also a file (`lefschetz.sage`) implementing the Lefschetz tests used by
 
 ## Installation
 
-Download the files. 
+Just download the files. 
+
+## Requirements
+
+Sage (http://www.sagemath.org) is needed to run the code.
 
 ## Usage
 
-Sage is needed to run the code. The easiest thing to do is to run the `demo.py` script from the shell, such as
+The easiest way to run experiments is by running the `demo.py` script from the shell. For example, for listing all polynomials of degree 5 whose largest root can possibly be the minimal stretch factor on a nonorientable surface, run
 
 ```
-$ sage demo.py 'nonor' 5
+$ sage demo.py 'nonor' 5.
 ```
+
+It is possible to specify an upper bound for the largest root of the polynomials:
+
+```
+$ sage demo.py nonor 3 --largest_root_bound 2
+```
+
+For large degree cases, computation case be sped up by separating the cases depending on the trace of the companion matrix of the polynomial. (This trace is the negative of the ``x^{d-1}``-coefficient of a degree `d` polynomial.) For example,
+
+```
+$ sage demo.py nonor 3 --first_trace -1
+```
+
+only searches for polynomials where the this trace is -1. The command
+
+```
+$ sage demo.py reversing 4 --separate_by_first_trace
+```
+
+searches for degree 4 polynomials for orientation-reversing pseudo-Anosov maps and invokes several commands of the form
+
+```
+$  sage demo.py reversing 4 --first_trace T
+```
+in order to test various cases at the same time.
 
 More extensive documentation is in demo.py.
